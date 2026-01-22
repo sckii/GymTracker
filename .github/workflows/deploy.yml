@@ -17,11 +17,10 @@ jobs:
           # --delete remove arquivos no destino que não existem mais no git
           rsync -av --delete ${{ github.workspace }} /home/samuelr/02-node/
 
-      # - name: Build e Deploy (Exemplo com Docker)
-      #   run: |
-      #     # Como o runner roda na pasta do projeto, basta rodar os comandos:
-      #     echo "Iniciando deploy..."
-      #     docker compose down
-      #     docker compose up -d --build
-      #     echo "Deploy concluído!"
-      #
+      # - name: Build e Deploy
+      - run: |
+          # Como o runner roda na pasta do projeto, basta rodar os comandos:
+          echo "Iniciando deploy..."
+          docker compose down
+          docker compose up -d --build
+          echo "Deploy concluído!"
