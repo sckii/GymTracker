@@ -3,8 +3,8 @@ services:
     build: .
     container_name: gym-tracker
     restart: unless-stopped
-  networks:
-    - home_server
+    networks:
+      - home_server
 
 networks:
   home_server:
