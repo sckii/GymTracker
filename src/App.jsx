@@ -94,7 +94,7 @@ function App() {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100 p-4 relative">
-      <div className="w-full max-w-[800px] bg-white rounded-2xl shadow-xl overflow-hidden h-[800px] flex flex-col border border-gray-100">
+      <div className="w-full max-w-[550px] bg-white rounded-2xl shadow-xl overflow-hidden h-[800px] flex flex-col border border-gray-100">
 
         {view === 'home' && (
           <HomeScreen setView={setView} activePlan={activePlan} />
