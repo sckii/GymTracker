@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Clock, Check, Save } from 'lucide-react';
 
-export default function WorkoutSession({ workout, onFinish, onBack }) {
+export default function WorkoutSession({ workout, previousLog, onFinish, onBack }) {
     const [logs, setLogs] = useState({});
     const [duration, setDuration] = useState(0);
 
@@ -16,6 +16,25 @@ export default function WorkoutSession({ workout, onFinish, onBack }) {
         const mins = Math.floor(seconds / 60);
         const secs = seconds % 60;
         return `${mins}:${secs.toString().padStart(2, '0')}`;
+    };
+
+    const getPreviousStats = (exerciseId, setIndex) => {
+        if (!previousLog || !previousLog.exercises) return null;
+        // Try precise ID match first
+        let prevExercise = previousLog.exercises.find(e => e.id === exerciseId);
+
+        // If not found (maybe plan edited/recreated), try matching by Name
+        if (!prevExercise) {
+            const currentExercise = workout.exercises.find(e => e.id === exerciseId);
+            if (currentExercise) {
+                prevExercise = previousLog.exercises.find(e => e.name === currentExercise.name);
+            }
+        }
+
+        if (prevExercise && prevExercise.sets && prevExercise.sets[setIndex]) {
+            return prevExercise.sets[setIndex];
+        }
+        return null;
     };
 
     const handleLogChange = (exerciseId, setIndex, field, value) => {
@@ -126,7 +145,7 @@ export default function WorkoutSession({ workout, onFinish, onBack }) {
 
                         <div className="space-y-3">
                             {/* Header Row */}
-                            <div className="grid grid-cols-10 gap-2 text-xs font-bold text-gray-400 uppercase text-center mb-2 px-1">
+                            <div className="grid grid-cols-10 gap-2 text-xs font-bold text-gray-400 uppercase text-center mb-2 px-2">
                                 <div className="col-span-1">Set</div>
                                 <div className="col-span-2">Target</div>
                                 <div className="col-span-3">Kg</div>
@@ -139,13 +158,19 @@ export default function WorkoutSession({ workout, onFinish, onBack }) {
                                 const setClass = isCompleted ? 'bg-green-50 border-green-100' : 'bg-gray-50 border-gray-100';
                                 const weightError = validationErrors[`${exercise.id}-${i}-weight`];
                                 const repsError = validationErrors[`${exercise.id}-${i}-reps`];
+                                const prevStats = getPreviousStats(exercise.id, i);
 
                                 return (
-                                    <div key={i} className={`grid grid-cols-10 gap-2 items-center p-2 rounded-xl border ${setClass} transition-colors`}>
+                                    <div key={i} className={`grid grid-cols-10 gap-2 items-center p-2 rounded-xl border ${setClass} transition-colors relative`}>
                                         <div className="col-span-1 text-center font-bold text-gray-500 text-sm">{i + 1}</div>
 
-                                        <div className="col-span-2 text-center text-sm font-medium text-gray-400">
-                                            {getTargetLabel(exercise, i)}
+                                        <div className="col-span-2 flex flex-col items-center justify-center">
+                                            <span className="text-sm font-medium text-gray-400">{getTargetLabel(exercise, i)}</span>
+                                            {prevStats && (
+                                                <span className="text-[10px] text-gray-400 bg-gray-100 px-1 rounded mt-0.5 whitespace-nowrap">
+                                                    Last: {prevStats.weight}kg/{prevStats.reps}
+                                                </span>
+                                            )}
                                         </div>
 
                                         <div className="col-span-3">

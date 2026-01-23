@@ -1,16 +1,96 @@
-import React, { useRef } from 'react';
-import { Plus, ArrowLeft, ChevronRight, Upload, Trash2, Download } from 'lucide-react';
+import React, { useRef, useState } from 'react';
+import { Plus, ArrowLeft, ChevronRight, Upload, Trash2, Download, Share2, FileText, Link as LinkIcon, X, Copy, Check } from 'lucide-react';
+import { generateShareLink, parseShareLink } from '../lib/share';
 
 export default function PlanList({ plans, setView, setSelectedPlanId, createPlan, addPlan, deletePlan, showNotification }) {
     const fileInputRef = useRef(null);
+    const [activeModal, setActiveModal] = useState(null); // 'export', 'import', 'share-result', 'import-link'
+    const [selectedPlanForExport, setSelectedPlanForExport] = useState(null);
+    const [generatedLink, setGeneratedLink] = useState('');
+    const [importLinkInput, setImportLinkInput] = useState('');
+    const [hasCopied, setHasCopied] = useState(false);
 
-    const handleImportClick = () => {
+    // --- Actions ---
+
+    const handleImportFileClick = () => {
         fileInputRef.current.click();
+        setActiveModal(null);
     };
 
-    const exportPlanToCSV = (plan, e) => {
-        e.stopPropagation();
+    const handleImportLinkSubmit = () => {
+        try {
+            const url = new URL(importLinkInput);
+            const token = url.searchParams.get('share');
+            if (!token) throw new Error('No share token found');
 
+            const plan = parseShareLink(token);
+            if (plan) {
+                addPlan(plan);
+                showNotification('Plan imported from link!', 'success');
+                setActiveModal(null);
+                setImportLinkInput('');
+            } else {
+                showNotification('Invalid share link.', 'error');
+            }
+        } catch (e) {
+            showNotification('Invalid URL format.', 'error');
+        }
+    };
+
+    const handleGenerateLink = (plan) => {
+        const link = generateShareLink(plan);
+        if (link) {
+            setGeneratedLink(link);
+            setActiveModal('share-result');
+        } else {
+            showNotification('Error generating link', 'error');
+        }
+    };
+
+    const copyToClipboard = () => {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(generatedLink).then(() => {
+                setHasCopied(true);
+                showNotification('Link copied to clipboard!', 'success');
+                setTimeout(() => setHasCopied(false), 2000);
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+                showNotification('Failed to copy link.', 'error');
+            });
+        } else {
+            // Fallback for non-secure contexts (HTTP)
+            const textArea = document.createElement("textarea");
+            textArea.value = generatedLink;
+
+            // Avoid scrolling to bottom
+            textArea.style.top = "0";
+            textArea.style.left = "0";
+            textArea.style.position = "fixed";
+            textArea.style.opacity = "0";
+
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    setHasCopied(true);
+                    showNotification('Link copied to clipboard!', 'success');
+                    setTimeout(() => setHasCopied(false), 2000);
+                } else {
+                    showNotification('Failed to copy link.', 'error');
+                }
+            } catch (err) {
+                console.error('Fallback: Oops, unable to copy', err);
+                showNotification('Failed to copy link.', 'error');
+            }
+
+            document.body.removeChild(textArea);
+        }
+    };
+
+    const exportPlanToCSV = (plan) => {
         try {
             // Calculate max sets to define number of Rep columns
             let maxSets = 0;
@@ -90,6 +170,7 @@ export default function PlanList({ plans, setView, setSelectedPlanId, createPlan
             document.body.removeChild(link);
 
             showNotification('Plan exported successfully!', 'success');
+            setActiveModal(null);
 
         } catch (error) {
             console.error('Export Error:', error);
@@ -220,6 +301,7 @@ export default function PlanList({ plans, setView, setSelectedPlanId, createPlan
                 if (plan) {
                     addPlan(plan);
                     showNotification('Plan imported successfully!', 'success');
+                    setActiveModal(null);
                 }
             } catch (error) {
                 console.error(error);
@@ -231,7 +313,7 @@ export default function PlanList({ plans, setView, setSelectedPlanId, createPlan
     };
 
     return (
-        <div className="flex flex-col h-full">
+        <div className="flex flex-col h-full relative">
             <div className="p-6 pb-2 flex items-center gap-4">
                 <button
                     onClick={() => setView('home')}
@@ -258,10 +340,14 @@ export default function PlanList({ plans, setView, setSelectedPlanId, createPlan
                         </div>
                         <div className="flex items-center gap-2">
                             <button
-                                onClick={(e) => exportPlanToCSV(plan, e)}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSelectedPlanForExport(plan);
+                                    setActiveModal('export');
+                                }}
                                 className="p-2 text-gray-300 hover:text-blue-500 hover:bg-blue-50 rounded-full transition-colors"
                             >
-                                <Download size={20} />
+                                <Share2 size={20} />
                             </button>
                             <button
                                 onClick={(e) => {
@@ -296,20 +382,137 @@ export default function PlanList({ plans, setView, setSelectedPlanId, createPlan
                     onChange={handleFileChange}
                 />
                 <button
-                    onClick={handleImportClick}
-                    className="flex-1 py-3 px-2 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition-colors flex items-center justify-center gap-"
+                    onClick={() => setActiveModal('import')}
+                    className="flex-1 py-3 px-2 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition-colors flex items-center justify-center gap-2"
                 >
                     <Upload size={16} />
-                    Import plan
+                    Import
                 </button>
                 <button
                     onClick={createPlan}
                     className="flex-[2] py-4 bg-gray-900 text-white rounded-xl font-bold hover:bg-black transition-colors flex items-center justify-center gap-2"
                 >
                     <Plus size={16} />
-                    Create New Plan
+                    New Plan
                 </button>
             </div>
+
+            {/* --- MODALS --- */}
+            {activeModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-slide-up">
+                        <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                            <h3 className="font-bold text-gray-800">
+                                {activeModal === 'export' && 'Share Plan'}
+                                {activeModal === 'import' && 'Import Plan'}
+                                {activeModal === 'share-result' && 'Share Link'}
+                                {activeModal === 'import-link' && 'Paste Link'}
+                            </h3>
+                            <button onClick={() => setActiveModal(null)} className="p-1 hover:bg-gray-200 rounded-full text-gray-500">
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        <div className="p-6">
+                            {/* EXPORT OPTIONS */}
+                            {activeModal === 'export' && (
+                                <div className="space-y-3">
+                                    <button
+                                        onClick={() => exportPlanToCSV(selectedPlanForExport)}
+                                        className="w-full p-4 border border-gray-200 rounded-xl flex items-center gap-4 hover:border-blue-500 hover:bg-blue-50 transition-all group text-left"
+                                    >
+                                        <div className="p-3 bg-blue-100 text-blue-600 rounded-full group-hover:bg-blue-200">
+                                            <FileText size={24} />
+                                        </div>
+                                        <div>
+                                            <span className="block font-bold text-gray-800">Export CSV</span>
+                                            <span className="text-xs text-gray-500">Download file to save</span>
+                                        </div>
+                                    </button>
+                                    <button
+                                        onClick={() => handleGenerateLink(selectedPlanForExport)}
+                                        className="w-full p-4 border border-gray-200 rounded-xl flex items-center gap-4 hover:border-purple-500 hover:bg-purple-50 transition-all group text-left"
+                                    >
+                                        <div className="p-3 bg-purple-100 text-purple-600 rounded-full group-hover:bg-purple-200">
+                                            <LinkIcon size={24} />
+                                        </div>
+                                        <div>
+                                            <span className="block font-bold text-gray-800">Share Link</span>
+                                            <span className="text-xs text-gray-500">Copy unique URL</span>
+                                        </div>
+                                    </button>
+                                </div>
+                            )}
+
+                            {/* IMPORT OPTIONS */}
+                            {activeModal === 'import' && (
+                                <div className="space-y-3">
+                                    <button
+                                        onClick={handleImportFileClick}
+                                        className="w-full p-4 border border-gray-200 rounded-xl flex items-center gap-4 hover:border-blue-500 hover:bg-blue-50 transition-all group text-left"
+                                    >
+                                        <div className="p-3 bg-blue-100 text-blue-600 rounded-full group-hover:bg-blue-200">
+                                            <Upload size={24} />
+                                        </div>
+                                        <div>
+                                            <span className="block font-bold text-gray-800">Upload File</span>
+                                            <span className="text-xs text-gray-500">Import .csv file</span>
+                                        </div>
+                                    </button>
+                                    <button
+                                        onClick={() => setActiveModal('import-link')}
+                                        className="w-full p-4 border border-gray-200 rounded-xl flex items-center gap-4 hover:border-purple-500 hover:bg-purple-50 transition-all group text-left"
+                                    >
+                                        <div className="p-3 bg-purple-100 text-purple-600 rounded-full group-hover:bg-purple-200">
+                                            <LinkIcon size={24} />
+                                        </div>
+                                        <div>
+                                            <span className="block font-bold text-gray-800">Paste Link</span>
+                                            <span className="text-xs text-gray-500">Import from URL</span>
+                                        </div>
+                                    </button>
+                                </div>
+                            )}
+
+                            {/* SHARE RESULT (DISPLAY LINK) */}
+                            {activeModal === 'share-result' && (
+                                <div className="flex flex-col gap-4">
+                                    <p className="text-sm text-gray-500 text-center">Copy this link to share your workout plan.</p>
+                                    <div className="bg-gray-100 p-3 rounded-lg break-all text-xs font-mono text-gray-600 border border-gray-200 max-h-32 overflow-y-auto">
+                                        {generatedLink}
+                                    </div>
+                                    <button
+                                        onClick={copyToClipboard}
+                                        className={`w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all ${hasCopied ? 'bg-green-500 text-white' : 'bg-gray-900 text-white hover:bg-black'}`}
+                                    >
+                                        {hasCopied ? <Check size={18} /> : <Copy size={18} />}
+                                        {hasCopied ? 'Copied!' : 'Copy Link'}
+                                    </button>
+                                </div>
+                            )}
+
+                            {/* IMPORT LINK INPUT */}
+                            {activeModal === 'import-link' && (
+                                <div className="flex flex-col gap-4">
+                                    <p className="text-sm text-gray-500">Paste the shared link below:</p>
+                                    <textarea
+                                        className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm min-h-[100px]"
+                                        placeholder="https://..."
+                                        value={importLinkInput}
+                                        onChange={(e) => setImportLinkInput(e.target.value)}
+                                    />
+                                    <button
+                                        onClick={handleImportLinkSubmit}
+                                        className="w-full py-3 bg-gray-900 text-white rounded-xl font-bold hover:bg-black transition-colors"
+                                    >
+                                        Import Plan
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from './lib/supabase';
 import { generateUUID } from './lib/uuid';
+import { parseShareLink } from './lib/share';
 import { ArrowLeft } from 'lucide-react';
 import HomeScreen from './components/HomeScreen';
 import PlanList from './components/PlanList';
@@ -13,6 +14,8 @@ import StatsView from './components/StatsView';
 import InstallPrompt from './components/InstallPrompt';
 import LoginScreen from './components/LoginScreen';
 import UserProfile from './components/UserProfile';
+import LoadingScreen from './components/LoadingScreen';
+
 
 function App() {
   const [session, setSession] = useState(null);
@@ -35,6 +38,48 @@ function App() {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  const [activeSessionWorkout, setActiveSessionWorkout] = useState(null);
+  const [isDataLoaded, setIsDataLoaded] = useState(false);
+
+  // UI State
+  const [notification, setNotification] = useState(null); // { message, type }
+  const [confirmDialog, setConfirmDialog] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => { }
+  });
+
+  const showNotification = (message, type = 'info') => {
+    setNotification({ message, type });
+  };
+
+  // Handle Share Link Import (Only when Session AND Data are ready)
+  useEffect(() => {
+    if (!session || !isDataLoaded) return;
+
+    const params = new URLSearchParams(window.location.search);
+    const shareToken = params.get('share');
+
+    if (shareToken) {
+      const importedPlan = parseShareLink(shareToken);
+      if (importedPlan && importedPlan.name) {
+        addPlan(importedPlan);
+        showNotification(`Plan "${importedPlan.name}" imported successfully!`, 'success');
+        setView('plan-list'); // Redirect to plan list
+
+        // Clean URL without reloading
+        const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+        window.history.pushState({ path: newUrl }, '', newUrl);
+      } else {
+        showNotification('Invalid or corrupted share link.', 'error');
+        // Clean URL anyway to avoid loops if persistent
+        const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+        window.history.pushState({ path: newUrl }, '', newUrl);
+      }
+    }
+  }, [session, isDataLoaded]);
 
   // Fetch Data when Session exists
   useEffect(() => {
@@ -76,26 +121,12 @@ function App() {
       } else if (logsError) {
         console.error('Error fetching logs:', logsError);
       }
+
+      setIsDataLoaded(true);
     };
 
     fetchData();
   }, [session]);
-
-  // Session State
-  const [activeSessionWorkout, setActiveSessionWorkout] = useState(null);
-
-  // UI State
-  const [notification, setNotification] = useState(null); // { message, type }
-  const [confirmDialog, setConfirmDialog] = useState({
-    isOpen: false,
-    title: '',
-    message: '',
-    onConfirm: () => { }
-  });
-
-  const showNotification = (message, type = 'info') => {
-    setNotification({ message, type });
-  };
 
   const createPlan = async () => {
     const newPlan = {
@@ -277,6 +308,10 @@ function App() {
     return <LoginScreen />;
   }
 
+  if (!isDataLoaded) {
+    return <LoadingScreen />;
+  }
+
   const activePlan = plans.find(p => p.isActive);
   const selectedPlan = plans.find(p => p.id === selectedPlanId);
 
@@ -287,6 +322,7 @@ function App() {
         <div className="absolute top-[-10%] right-[-10%] w-96 h-96 bg-[#B6F500]/40 rounded-full mix-blend-multiply filter blur-3xl opacity-60 animate-blob animation-delay-2000"></div>
         <div className="absolute bottom-[-20%] left-[20%] w-96 h-96 bg-[#A4DD00]/30 rounded-full mix-blend-multiply filter blur-3xl opacity-60 animate-blob animation-delay-4000"></div>
       </div>
+
       <UserProfile user={session.user} />
 
       <div className={view === 'home' ? "w-full max-w-[550px] overflow-hidden h-[600px] flex flex-col border border-gray-100" : "w-full max-w-[550px] bg-white rounded-2xl shadow-xl overflow-hidden h-[580px] flex flex-col border border-gray-100"}>
@@ -332,6 +368,7 @@ function App() {
         {view === 'workout-session' && activeSessionWorkout && (
           <WorkoutSession
             workout={activeSessionWorkout}
+            previousLog={logs.find(l => l.plan_id === activePlan?.id && l.workoutName === activeSessionWorkout.name)}
             onFinish={handleFinishSession}
             onBack={() => setView('start-workout')}
           />
