@@ -11,6 +11,7 @@ import ActiveWorkoutSelector from './components/ActiveWorkoutSelector';
 import WorkoutSession from './components/WorkoutSession';
 import StatsView from './components/StatsView';
 import InstallPrompt from './components/InstallPrompt';
+import ReloadPrompt from './components/ReloadPrompt';
 import LoginScreen from './components/LoginScreen';
 import UserProfile from './components/UserProfile';
 
@@ -353,6 +354,7 @@ function App() {
       )}
 
       <InstallPrompt />
+      <ReloadPrompt />
 
       <ConfirmModal
         isOpen={confirmDialog.isOpen}
