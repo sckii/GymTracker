@@ -10,6 +10,38 @@
 
 <body>
   <div id="root"></div>
+  <div id="error-display"
+    style="display:none; padding:20px; background:#ffebee; color:#d32f2f; font-family:sans-serif; border:1px solid #ffcdd2; margin:20px; border-radius:8px;">
+    <h3 style="margin-top:0">Startup Error</h3>
+    <pre id="error-text" style="white-space:pre-wrap;"></pre>
+    <button onclick="window.location.reload(true)"
+      style="margin-top:10px; padding:8px 16px; background:#d32f2f; color:white; border:none; border-radius:4px;">Reload
+      App</button>
+  </div>
+  <script>
+    // Global Error Handler for "White Screen of Death"
+    window.onerror = function (msg, url, line, col, error) {
+      const display = document.getElementById('error-display');
+      const text = document.getElementById('error-text');
+      display.style.display = 'block';
+      text.textContent += `Error: ${msg}\nAt: ${url}:${line}:${col}\n${error?.stack || ''}\n\n`;
+      return false;
+    };
+    window.addEventListener('unhandledrejection', function (event) {
+      const display = document.getElementById('error-display');
+      const text = document.getElementById('error-text');
+      display.style.display = 'block';
+      text.textContent += `Promise Rejection: ${event.reason}\n\n`;
+    });
+
+    // Validar se variáveis de ambiente existem (Vite embeda em build time)
+    // Isso ajuda a debugar se o .env foi lido corretamente
+    setTimeout(() => {
+      if (!document.getElementById('root').hasChildNodes()) {
+        console.log("React mount might have failed.");
+      }
+    }, 3000);
+  </script>
   <script type="module" src="/src/main.jsx"></script>
 </body>
 
