@@ -1,5 +1,5 @@
 import React from 'react';
-import { ClipboardList, Play } from 'lucide-react';
+import { ClipboardList, Play, History } from 'lucide-react';
 
 export default function HomeScreen({ setView, activePlan }) {
     return (
@@ -39,6 +39,19 @@ export default function HomeScreen({ setView, activePlan }) {
                     ) : (
                         <span className="text-xs text-gray-500 font-medium mt-1">Select a plan first</span>
                     )}
+                </div>
+            </button>
+
+            <button
+                onClick={() => setView('stats')}
+                className="w-72 p-6 bg-white/40 backdrop-blur-md border border-white/50 rounded-2xl shadow-xl flex flex-row items-center gap-4 hover:shadow-2xl hover:bg-white/60 hover:scale-105 transition-all duration-300 group"
+            >
+                <div className="p-4 bg-white/50 rounded-full text-purple-600 shadow-inner group-hover:bg-purple-500 group-hover:text-white transition-all duration-500 shrink-0">
+                    <History size={28} />
+                </div>
+                <div className="text-left">
+                    <span className="block text-lg font-bold text-gray-800 tracking-tight">History</span>
+                    <span className="text-xs text-gray-500 font-medium">Stats & Logs</span>
                 </div>
             </button>
         </div>

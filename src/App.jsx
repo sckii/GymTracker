@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import HomeScreen from './components/HomeScreen';
 import PlanList from './components/PlanList';
@@ -7,11 +7,30 @@ import NotificationToast from './components/NotificationToast';
 import ConfirmModal from './components/ConfirmModal';
 import ActiveWorkoutSelector from './components/ActiveWorkoutSelector';
 import WorkoutSession from './components/WorkoutSession';
+import StatsView from './components/StatsView';
 
 function App() {
-  const [view, setView] = useState('home'); // 'home', 'plan-list', 'plan-editor', 'start-workout', 'workout-session'
+  const [view, setView] = useState('home'); // 'home', 'plan-list', 'plan-editor', 'start-workout', 'workout-session', 'stats'
   const [plans, setPlans] = useState([]);
+  const [logs, setLogs] = useState([]); // Store workout logs
   const [selectedPlanId, setSelectedPlanId] = useState(null);
+
+  // Load data from localStorage on mount
+  useEffect(() => {
+    const savedPlans = localStorage.getItem('gym_tracker_plans');
+    const savedLogs = localStorage.getItem('gym_tracker_logs');
+    if (savedPlans) setPlans(JSON.parse(savedPlans));
+    if (savedLogs) setLogs(JSON.parse(savedLogs));
+  }, []);
+
+  // Save data to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('gym_tracker_plans', JSON.stringify(plans));
+  }, [plans]);
+
+  useEffect(() => {
+    localStorage.setItem('gym_tracker_logs', JSON.stringify(logs));
+  }, [logs]);
 
   // Session State
   const [activeSessionWorkout, setActiveSessionWorkout] = useState(null);
@@ -82,8 +101,31 @@ function App() {
     setView('workout-session');
   };
 
-  const handleFinishSession = (logs, duration) => {
-    // console.log('Session Finished', logs, duration);
+  const handleFinishSession = (sessionLogs, duration) => {
+    const activePlan = plans.find(p => p.isActive);
+
+    // Construct a log entry
+    // Structure: { id, date, planName, workoutName, duration, exercises: [...] }
+    const newLog = {
+      id: Date.now().toString(),
+      date: new Date().toISOString(),
+      planName: activePlan ? activePlan.name : 'Unknown Plan',
+      workoutName: activeSessionWorkout ? activeSessionWorkout.name : 'Unknown Workout',
+      duration: duration,
+      data: sessionLogs, // Raw logs from session { exerciseId: { setIndex: { reps, weight, completed } } }
+      exercises: activeSessionWorkout.exercises.map(ex => ({
+        id: ex.id,
+        name: ex.name,
+        sets: Array.from({ length: parseInt(ex.sets) || 0 }).map((_, i) => ({
+          reps: sessionLogs[ex.id]?.[i]?.reps || 0,
+          weight: sessionLogs[ex.id]?.[i]?.weight || 0,
+          completed: sessionLogs[ex.id]?.[i]?.completed || false
+        }))
+      }))
+    };
+
+    setLogs(prev => [newLog, ...prev]); // Add new log to history
+
     showNotification('Workout finished! Great job!', 'success');
     setActiveSessionWorkout(null);
     setView('home');
@@ -140,6 +182,10 @@ function App() {
             onFinish={handleFinishSession}
             onBack={() => setView('start-workout')}
           />
+        )}
+
+        {view === 'stats' && (
+          <StatsView logs={logs} onBack={() => setView('home')} />
         )}
 
       </div>
