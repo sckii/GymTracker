@@ -12,7 +12,7 @@ export default function PlanInfoView({ plan, updatePlan }) {
             <div className="flex flex-col gap-6">
 
                 {/* Active Toggle */}
-                <div className="flex items-center justify-between bg-white border border-gray-200 rounded-xl p-4">
+                <div className="flex items-center justify-between bg-white border overflow-y-auto border-gray-200 rounded-xl p-4">
                     <div className="flex flex-col">
                         <span className="font-bold text-gray-800">Plan Status</span>
                         <span className="text-sm text-gray-400">{plan.isActive ? 'Active (Read-Only)' : 'Draft (Editable)'}</span>

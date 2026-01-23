@@ -16,7 +16,7 @@ export default function UserProfile({ user }) {
     const displayName = fullName.split(' ')[0];
 
     return (
-        <div className="absolute top-4 right-4 z-50 flex items-center gap-3 bg-white backdrop-blur-md py-1.5 px-3 rounded-full border border-white/40 shadow-sm transition-all hover:bg-white/50">
+        <div className="absolute top-4 right-4 z-50 flex items-center gap-3 bg-white backdrop-blur-md py-1.5 px-3 rounded-full border border-white/40 shadow-sm transition-all hover:bg-white/50 fixed top-0">
             <div className="flex items-center gap-2">
                 {avatarUrl ? (
                     <img

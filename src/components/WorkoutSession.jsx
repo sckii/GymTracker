@@ -5,6 +5,8 @@ export default function WorkoutSession({ workout, onFinish, onBack }) {
     const [logs, setLogs] = useState({});
     const [duration, setDuration] = useState(0);
 
+    const [validationErrors, setValidationErrors] = useState({});
+
     useEffect(() => {
         const timer = setInterval(() => setDuration(d => d + 1), 1000);
         return () => clearInterval(timer);
@@ -17,6 +19,18 @@ export default function WorkoutSession({ workout, onFinish, onBack }) {
     };
 
     const handleLogChange = (exerciseId, setIndex, field, value) => {
+        // Validation: Prevent negative values
+        if (value < 0) return;
+
+        // Clear validation error when user types
+        if (validationErrors[`${exerciseId}-${setIndex}-${field}`]) {
+            setValidationErrors(prev => {
+                const newErrors = { ...prev };
+                delete newErrors[`${exerciseId}-${setIndex}-${field}`];
+                return newErrors;
+            });
+        }
+
         setLogs(prev => ({
             ...prev,
             [exerciseId]: {
@@ -40,6 +54,39 @@ export default function WorkoutSession({ workout, onFinish, onBack }) {
         return '-';
     };
 
+    const handleFinish = () => {
+        let hasErrors = false;
+        const newErrors = {};
+
+        // Validate all fields are filled
+        for (const exercise of workout.exercises) {
+            const setsCount = parseInt(exercise.sets) || 0;
+
+            for (let i = 0; i < setsCount; i++) {
+                const log = logs[exercise.id]?.[i];
+                const weight = log?.weight;
+                const reps = log?.reps;
+
+                if (weight === '' || weight === undefined || weight === null) {
+                    newErrors[`${exercise.id}-${i}-weight`] = true;
+                    hasErrors = true;
+                }
+                if (reps === '' || reps === undefined || reps === null) {
+                    newErrors[`${exercise.id}-${i}-reps`] = true;
+                    hasErrors = true;
+                }
+            }
+        }
+
+        if (hasErrors) {
+            setValidationErrors(newErrors);
+            // Optional: Scroll to top or first error if needed
+            return;
+        }
+
+        onFinish(logs, duration);
+    };
+
     return (
         <div className="flex flex-col h-full bg-gray-50">
             {/* Header */}
@@ -57,7 +104,7 @@ export default function WorkoutSession({ workout, onFinish, onBack }) {
                     </div>
                 </div>
                 <button
-                    onClick={() => onFinish(logs, duration)}
+                    onClick={handleFinish}
                     className="bg-green-500 hover:bg-green-600 text-white px-5 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 shadow-sm transition-colors"
                 >
                     <Save size={18} />
@@ -83,13 +130,15 @@ export default function WorkoutSession({ workout, onFinish, onBack }) {
                                 <div className="col-span-1">Set</div>
                                 <div className="col-span-2">Target</div>
                                 <div className="col-span-3">Kg</div>
-                                <div className="col-span-3">Reps</div>
-                                <div className="col-span-1"></div>
+                                <div className="col-span-2">Reps</div>
+                                <div className="col-span-2"></div>
                             </div>
 
                             {Array.from({ length: parseInt(exercise.sets) || 0 }).map((_, i) => {
                                 const isCompleted = logs[exercise.id]?.[i]?.completed;
                                 const setClass = isCompleted ? 'bg-green-50 border-green-100' : 'bg-gray-50 border-gray-100';
+                                const weightError = validationErrors[`${exercise.id}-${i}-weight`];
+                                const repsError = validationErrors[`${exercise.id}-${i}-reps`];
 
                                 return (
                                     <div key={i} className={`grid grid-cols-10 gap-2 items-center p-2 rounded-xl border ${setClass} transition-colors`}>
@@ -102,24 +151,26 @@ export default function WorkoutSession({ workout, onFinish, onBack }) {
                                         <div className="col-span-3">
                                             <input
                                                 type="number"
+                                                min="0"
                                                 placeholder="-"
-                                                className={`w-full text-center bg-white rounded-lg py-1.5 text-sm font-bold text-gray-700 outline-none focus:ring-2 focus:ring-blue-200 border border-transparent focus:border-blue-300 transition-all ${isCompleted ? 'text-green-700' : ''}`}
+                                                className={`w-full text-center bg-white rounded-lg py-1.5 text-sm font-bold text-gray-700 outline-none focus:ring-2 focus:ring-blue-200 border transition-all ${weightError ? 'border-red-500 ring-1 ring-red-200' : 'border-transparent focus:border-blue-300'} ${isCompleted ? 'text-green-700' : ''}`}
                                                 value={logs[exercise.id]?.[i]?.weight || ''}
                                                 onChange={(e) => handleLogChange(exercise.id, i, 'weight', e.target.value)}
                                             />
                                         </div>
 
-                                        <div className="col-span-3">
+                                        <div className="col-span-2">
                                             <input
                                                 type="number"
+                                                min="0"
                                                 placeholder={getTargetLabel(exercise, i)}
-                                                className={`w-full text-center bg-white rounded-lg py-1.5 text-sm font-bold text-gray-700 outline-none focus:ring-2 focus:ring-blue-200 border border-transparent focus:border-blue-300 transition-all ${isCompleted ? 'text-green-700' : ''}`}
+                                                className={`w-full text-center bg-white rounded-lg py-1.5 text-sm font-bold text-gray-700 outline-none focus:ring-2 focus:ring-blue-200 border transition-all ${repsError ? 'border-red-500 ring-1 ring-red-200' : 'border-transparent focus:border-blue-300'} ${isCompleted ? 'text-green-700' : ''}`}
                                                 value={logs[exercise.id]?.[i]?.reps || ''}
                                                 onChange={(e) => handleLogChange(exercise.id, i, 'reps', e.target.value)}
                                             />
                                         </div>
 
-                                        <div className="col-span-1 flex justify-center">
+                                        <div className="col-span-2 flex justify-center">
                                             <button
                                                 onClick={() => toggleSetComplete(exercise.id, i)}
                                                 className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${isCompleted ? 'bg-green-500 text-white shadow-md scale-105' : 'bg-gray-200 text-gray-400 hover:bg-gray-300'}`}
@@ -138,4 +189,5 @@ export default function WorkoutSession({ workout, onFinish, onBack }) {
             </div>
         </div>
     );
+
 }

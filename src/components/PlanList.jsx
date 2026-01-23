@@ -297,16 +297,16 @@ export default function PlanList({ plans, setView, setSelectedPlanId, createPlan
                 />
                 <button
                     onClick={handleImportClick}
-                    className="flex-1 py-4 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition-colors flex items-center justify-center gap-2"
+                    className="flex-1 py-3 px-2 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition-colors flex items-center justify-center gap-"
                 >
-                    <Upload size={20} />
+                    <Upload size={16} />
                     Import plan
                 </button>
                 <button
                     onClick={createPlan}
                     className="flex-[2] py-4 bg-gray-900 text-white rounded-xl font-bold hover:bg-black transition-colors flex items-center justify-center gap-2"
                 >
-                    <Plus size={20} />
+                    <Plus size={16} />
                     Create New Plan
                 </button>
             </div>

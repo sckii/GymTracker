@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from './lib/supabase';
+import { generateUUID } from './lib/uuid';
 import { ArrowLeft } from 'lucide-react';
 import HomeScreen from './components/HomeScreen';
 import PlanList from './components/PlanList';
@@ -98,7 +99,7 @@ function App() {
 
   const createPlan = async () => {
     const newPlan = {
-      id: crypto.randomUUID(),
+      id: generateUUID(),
       name: 'New Training Plan',
       description: '',
       startDate: new Date().toISOString().split('T')[0],
@@ -139,7 +140,7 @@ function App() {
 
   const addPlan = async (newPlan) => {
     // Force a new valid UUID for the plan to match Supabase schema, ignoring any legacy/timestamp IDs from CSV
-    const securePlan = { ...newPlan, id: crypto.randomUUID() };
+    const securePlan = { ...newPlan, id: generateUUID() };
 
     setPlans(prev => [...prev, securePlan]);
 
@@ -226,7 +227,7 @@ function App() {
   const handleFinishSession = async (sessionLogs, duration) => {
     const activePlan = plans.find(p => p.isActive);
 
-    const newLogId = crypto.randomUUID();
+    const newLogId = generateUUID();
     const logDate = new Date().toISOString();
 
     const newLogData = {
@@ -288,7 +289,7 @@ function App() {
       </div>
       <UserProfile user={session.user} />
 
-      <div className={view === 'home' ? "w-full max-w-[550px] overflow-hidden h-[800px] flex flex-col border border-gray-100" : "w-full max-w-[550px] bg-white rounded-2xl shadow-xl overflow-hidden h-[800px] flex flex-col border border-gray-100"}>
+      <div className={view === 'home' ? "w-full max-w-[550px] overflow-hidden h-[600px] flex flex-col border border-gray-100" : "w-full max-w-[550px] bg-white rounded-2xl shadow-xl overflow-hidden h-[580px] flex flex-col border border-gray-100"}>
 
         {view === 'home' && (
           <HomeScreen setView={setView} activePlan={activePlan} />
@@ -318,7 +319,7 @@ function App() {
           <div className="flex flex-col h-full bg-white relative">
             <div className="p-6">
               <button onClick={() => setView('home')} className="mb-2 text-sm text-gray-500 hover:text-gray-800 flex items-center gap-1">
-                <ArrowLeft size={16} /> Back
+                <ArrowLeft size={24} /> Back
               </button>
             </div>
             <ActiveWorkoutSelector
