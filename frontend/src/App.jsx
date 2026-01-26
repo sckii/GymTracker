@@ -17,12 +17,18 @@ import UserProfile from './components/UserProfile';
 import LoadingScreen from './components/LoadingScreen';
 
 
+import { SUBSCRIPTION_PLANS, DEFAULT_PLAN } from './config/subscriptionPlans';
+
 function App() {
   const [session, setSession] = useState(null);
   const [view, setView] = useState('home'); // 'home', 'plan-list', 'plan-editor', 'start-workout', 'workout-session', 'stats'
   const [plans, setPlans] = useState([]);
   const [logs, setLogs] = useState([]); // Store workout logs
   const [selectedPlanId, setSelectedPlanId] = useState(null);
+
+  // Subscription State
+  const [userPlan, setUserPlan] = useState(DEFAULT_PLAN);
+  const [userProfile, setUserProfile] = useState(null);
 
   // Auth & Data Subscription
   useEffect(() => {
@@ -48,11 +54,145 @@ function App() {
     isOpen: false,
     title: '',
     message: '',
+    confirmText: 'Delete',
     onConfirm: () => { }
   });
 
   const showNotification = (message, type = 'info') => {
     setNotification({ message, type });
+  };
+
+  const handleUpgrade = async (planId) => {
+    const plan = Object.values(SUBSCRIPTION_PLANS).find(p => p.id === planId);
+
+    if (!plan) return;
+
+    if (plan.id === 'free') {
+      showNotification('To cancel your subscription, please manage it in the Stripe Portal (Coming Soon).', 'info');
+      return;
+    }
+
+    if (!plan.priceId) {
+      showNotification('Configuration Error: Price ID missing for this plan.', 'error');
+      return;
+    }
+
+    showNotification('Preparing checkout...', 'info');
+
+    try {
+      const { data: { session: currentSession } } = await supabase.auth.getSession();
+
+      if (!currentSession?.access_token) {
+        throw new Error('No active session token');
+      }
+
+      const response = await fetch('http://localhost:4242/create-checkout-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${currentSession.access_token}`
+        },
+        body: JSON.stringify({
+          priceId: plan.priceId,
+          customerId: userProfile?.stripe_customer_id,
+          email: session.user.email,
+          userId: session.user.id,
+          successUrl: window.location.origin + '?upgrade=success',
+          cancelUrl: window.location.origin + '?upgrade=canceled'
+        })
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Network response was not ok');
+
+      if (data.error) throw data.error;
+
+      if (data?.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error('No checkout URL returned');
+      }
+
+    } catch (err) {
+      console.error('Checkout error:', err);
+      showNotification('Failed to start checkout. Please try again.', 'error');
+    }
+  };
+
+  const handleManageSubscription = async () => {
+    try {
+      showNotification('Redirecting to billing portal...', 'info');
+      const { data: { session: currentSession } } = await supabase.auth.getSession();
+      if (!currentSession?.access_token) throw new Error('No active session');
+
+      const response = await fetch('http://localhost:4242/create-portal-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${currentSession.access_token}`
+        },
+        body: JSON.stringify({
+          returnUrl: window.location.origin
+        })
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Network response was not ok');
+
+      if (error) throw error;
+      if (data?.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error('No portal URL returned');
+      }
+    } catch (err) {
+      console.error('Portal error:', err);
+      showNotification('Failed to open billing portal', 'error');
+    }
+  };
+
+  const handleCancelSubscription = async () => {
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Cancel Subscription',
+      message: 'Are you sure you want to cancel? If you subscribed less than 7 days ago, you will receive a full refund immediately. Otherwise, you will be redirected to the management portal.',
+      confirmText: "Cancel Subscription",
+      onConfirm: async () => {
+        try {
+          showNotification('Processing cancellation...', 'info');
+          const { data: { session: currentSession } } = await supabase.auth.getSession();
+          if (!currentSession?.access_token) throw new Error('No active session');
+
+          const response = await fetch('http://localhost:4242/cancel-subscription', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${currentSession.access_token}`
+            },
+            body: JSON.stringify({})
+          });
+
+          const data = await response.json();
+
+          if (!response.ok) throw new Error(data.error || 'Network response was not ok');
+
+          if (data?.refunded) {
+            showNotification('Subscription cancelled and refunded successfully!', 'success');
+            window.location.reload();
+          } else if (data?.url) {
+            window.location.href = data.url;
+          } else {
+            showNotification(data?.message || 'Subscription cancelled', 'success');
+            window.location.reload();
+          }
+          setConfirmDialog(prev => ({ ...prev, isOpen: false }));
+        } catch (err) {
+          console.error('Cancellation error:', err);
+          showNotification(`Cancellation failed: ${err.message}`, 'error');
+          setConfirmDialog(prev => ({ ...prev, isOpen: false }));
+        }
+      }
+    });
   };
 
   // Handle Share Link Import (Only when Session AND Data are ready)
@@ -61,6 +201,14 @@ function App() {
 
     const params = new URLSearchParams(window.location.search);
     const shareToken = params.get('share');
+    const upgradeStatus = params.get('upgrade');
+
+    if (upgradeStatus === 'success') {
+      showNotification('Subscription upgraded successfully!', 'success');
+      // Clean URL
+      const newUrl = window.location.origin + window.location.pathname;
+      window.history.pushState({ path: newUrl }, '', newUrl);
+    }
 
     if (shareToken) {
       const importedPlan = parseShareLink(shareToken);
@@ -122,6 +270,23 @@ function App() {
         console.error('Error fetching logs:', logsError);
       }
 
+      // Fetch User Profile (Subscription Tier)
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('subscription_tier, stripe_customer_id')
+        .eq('id', session.user.id)
+        .single();
+
+      if (profileData) {
+        setUserProfile(profileData);
+        const plan = Object.values(SUBSCRIPTION_PLANS).find(p => p.id === profileData.subscription_tier);
+        if (plan) {
+          setUserPlan(plan);
+        }
+      } else if (profileError) {
+        console.error('Error fetching profile:', profileError);
+      }
+
       setIsDataLoaded(true);
     };
 
@@ -129,6 +294,12 @@ function App() {
   }, [session]);
 
   const createPlan = async () => {
+    // Check Subscription Limits
+    if (plans.length >= userPlan.maxPlans) {
+      showNotification(`Plan limit reached (${userPlan.maxPlans}) for ${userPlan.name} tier.`, 'error');
+      return;
+    }
+
     const newPlan = {
       id: generateUUID(),
       name: 'New Training Plan',
@@ -258,6 +429,19 @@ function App() {
   const handleFinishSession = async (sessionLogs, duration) => {
     const activePlan = plans.find(p => p.isActive);
 
+    // Check Subscription Limits (Logs)
+    let logsToDelete = [];
+    if (logs.length >= userPlan.maxLogs) {
+      // Logs are ordered by date DESC (newest first). So the oldest are at the end.
+      const oldestLog = logs[logs.length - 1];
+      logsToDelete.push(oldestLog.id);
+
+      // Remove locally immediately
+      setLogs(prev => prev.slice(0, -1));
+
+      showNotification(`Log limit reached (${userPlan.maxLogs}). Oldest log removed.`, 'info');
+    }
+
     const newLogId = generateUUID();
     const logDate = new Date().toISOString();
 
@@ -290,6 +474,11 @@ function App() {
     setView('home');
 
     if (session) {
+      // Delete old logs if limit reached
+      if (logsToDelete.length > 0) {
+        await supabase.from('logs').delete().in('id', logsToDelete);
+      }
+
       const { error } = await supabase.from('logs').insert({
         id: newLogId,
         user_id: session.user.id,
@@ -323,7 +512,13 @@ function App() {
         <div className="absolute bottom-[-20%] left-[20%] w-96 h-96 bg-[#A4DD00]/30 rounded-full mix-blend-multiply filter blur-3xl opacity-60 animate-blob animation-delay-4000"></div>
       </div>
 
-      <UserProfile user={session.user} />
+      <UserProfile
+        user={session.user}
+        currentPlan={userPlan}
+        onUpgrade={handleUpgrade}
+        onManage={handleManageSubscription}
+        onCancel={handleCancelSubscription}
+      />
 
       <div className={view === 'home' ? "w-full max-w-[550px] overflow-hidden h-[600px] flex flex-col border border-gray-100" : "w-full max-w-[550px] bg-white rounded-2xl shadow-xl overflow-hidden h-[580px] flex flex-col border border-gray-100"}>
 
@@ -395,6 +590,7 @@ function App() {
         isOpen={confirmDialog.isOpen}
         title={confirmDialog.title}
         message={confirmDialog.message}
+        confirmText={confirmDialog.confirmText || "Delete"}
         onConfirm={confirmDialog.onConfirm}
         onCancel={() => setConfirmDialog(prev => ({ ...prev, isOpen: false }))}
       />

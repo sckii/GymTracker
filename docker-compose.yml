@@ -1,8 +1,21 @@
 services:
   gym-tracker:
-    build: .
-    container_name: gym-tracker
+    build: ./frontend
+    container_name: gym-tracker-frontend
     restart: unless-stopped
+    networks:
+      - home_server
+
+  gym-tracker-backend:
+    build: ./backend
+    container_name: gym-tracker-backend
+    restart: unless-stopped
+    ports:
+      - "4242:4242"
+    env_file:
+      - ./frontend/.env
+    environment:
+      - PORT=4242
     networks:
       - home_server
 

@@ -147,8 +147,8 @@ export default function WorkoutSession({ workout, previousLog, onFinish, onBack 
                             {/* Header Row */}
                             <div className="grid grid-cols-10 gap-2 text-xs font-bold text-gray-400 uppercase text-center mb-2 px-2">
                                 <div className="col-span-1">Set</div>
-                                <div className="col-span-2">Target</div>
-                                <div className="col-span-3">Kg</div>
+                                <div className="col-span-3">Target</div>
+                                <div className="col-span-2">Kg</div>
                                 <div className="col-span-2">Reps</div>
                                 <div className="col-span-2"></div>
                             </div>
@@ -164,7 +164,7 @@ export default function WorkoutSession({ workout, previousLog, onFinish, onBack 
                                     <div key={i} className={`grid grid-cols-10 gap-2 items-center p-2 rounded-xl border ${setClass} transition-colors relative`}>
                                         <div className="col-span-1 text-center font-bold text-gray-500 text-sm">{i + 1}</div>
 
-                                        <div className="col-span-2 flex flex-col items-center justify-center">
+                                        <div className="col-span-3 flex flex-col items-center justify-center">
                                             <span className="text-sm font-medium text-gray-400">{getTargetLabel(exercise, i)}</span>
                                             {prevStats && (
                                                 <span className="text-[10px] text-gray-400 bg-gray-100 px-1 rounded mt-0.5 whitespace-nowrap">
@@ -173,7 +173,7 @@ export default function WorkoutSession({ workout, previousLog, onFinish, onBack 
                                             )}
                                         </div>
 
-                                        <div className="col-span-3">
+                                        <div className="col-span-2">
                                             <input
                                                 type="number"
                                                 min="0"
