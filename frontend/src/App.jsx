@@ -15,6 +15,7 @@ import InstallPrompt from './components/InstallPrompt';
 import LoginScreen from './components/LoginScreen';
 import UserProfile from './components/UserProfile';
 import LoadingScreen from './components/LoadingScreen';
+import TestDataGenerator from './components/TestDataGenerator';
 
 
 import { SUBSCRIPTION_PLANS, DEFAULT_PLAN } from './config/subscriptionPlans';
@@ -576,7 +577,11 @@ function App() {
         onCancel={handleCancelSubscription}
       />
 
-      <div className={view === 'home' ? "w-full max-w-[550px] overflow-hidden h-[600px] flex flex-col" : "w-full max-w-[550px] bg-brand-gray/70 backdrop-blur-md rounded-2xl shadow-2xl overflow-hidden h-[600px] flex flex-col"}>
+      <div className={view === 'home'
+        ? "w-full max-w-[550px] overflow-hidden h-[600px] flex flex-col transition-all duration-500"
+        : view === 'stats'
+          ? "w-full max-w-[1000px] bg-brand-gray/95 backdrop-blur-md rounded-2xl shadow-2xl overflow-hidden h-[80vh] flex flex-col transition-all duration-500"
+          : "w-full max-w-[550px] bg-brand-gray/70 backdrop-blur-md rounded-2xl shadow-2xl overflow-hidden h-[600px] flex flex-col transition-all duration-500"}>
 
         {view === 'home' && (
           <HomeScreen setView={setView} activePlan={activePlan} />
@@ -626,7 +631,12 @@ function App() {
         )}
 
         {view === 'stats' && (
-          <StatsView logs={logs} onBack={() => setView('home')} />
+          <StatsView
+            logs={logs}
+            plans={plans}
+            activePlanId={activePlan?.id}
+            onBack={() => setView('home')}
+          />
         )}
 
       </div>
@@ -650,6 +660,8 @@ function App() {
         onConfirm={confirmDialog.onConfirm}
         onCancel={confirmDialog.onCancel || (() => setConfirmDialog(prev => ({ ...prev, isOpen: false })))}
       />
+
+      {/* <TestDataGenerator onComplete={() => window.location.reload()} /> */}
     </div>
   );
 }

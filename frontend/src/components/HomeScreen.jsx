@@ -45,14 +45,15 @@ export default function HomeScreen({ setView, activePlan }) {
             </button>
 
             <button
-                className="w-72 p-6 bg-brand-light-gray/40 backdrop-blur-md border border-brand-border/50 rounded-2xl shadow-xl flex flex-row items-center gap-4 transition-all duration-300 group opacity-60 grayscale cursor-not-allowed"
+                onClick={() => setView('stats')}
+                className="w-72 p-6 bg-brand-light-gray/40 backdrop-blur-md border border-brand-border/50 rounded-2xl shadow-xl flex flex-row items-center gap-4 hover:shadow-2xl hover:bg-brand-light-gray/60 hover:scale-105 transition-all duration-300 group"
             >
-                <div className="p-4 bg-brand-gray rounded-full text-brand-lime shadow-inner shrink-0">
+                <div className="p-4 bg-brand-gray rounded-full text-brand-lime shadow-inner group-hover:bg-brand-lime group-hover:text-black transition-all duration-500 shrink-0">
                     <History size={28} />
                 </div>
                 <div className="text-left">
-                    <span className="block text-lg font-bold text-gray-100 tracking-tight">History</span>
-                    <span className="text-xs text-gray-400 font-medium">Coming Soon</span>
+                    <span className="block text-lg font-bold text-gray-100 tracking-tight">History & Stats</span>
+                    <span className="text-xs text-gray-400 font-medium">View progress</span>
                 </div>
             </button>
         </div>
