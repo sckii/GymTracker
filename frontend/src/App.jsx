@@ -220,13 +220,29 @@ function App() {
     if (shareToken) {
       const importedPlan = parseShareLink(shareToken);
       if (importedPlan && importedPlan.name) {
-        addPlan(importedPlan);
-        showNotification(`Plan "${importedPlan.name}" imported successfully!`, 'success');
-        setView('plan-list'); // Redirect to plan list
+        setConfirmDialog({
+          isOpen: true,
+          title: 'Import Plan?',
+          message: `Do you want to import the plan "${importedPlan.name}"?`,
+          confirmText: 'Import',
+          onConfirm: () => {
+            addPlan(importedPlan);
+            showNotification(`Plan "${importedPlan.name}" imported successfully!`, 'success');
+            setView('plan-list');
 
-        // Clean URL without reloading
-        const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
-        window.history.pushState({ path: newUrl }, '', newUrl);
+            // Clean URL
+            const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+            window.history.pushState({ path: newUrl }, '', newUrl);
+            setConfirmDialog(prev => ({ ...prev, isOpen: false }));
+          },
+          onCancel: () => {
+            showNotification('Import cancelled', 'info');
+            // Clean URL
+            const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+            window.history.pushState({ path: newUrl }, '', newUrl);
+            setConfirmDialog(prev => ({ ...prev, isOpen: false }));
+          }
+        });
       } else {
         showNotification('Invalid or corrupted share link.', 'error');
         // Clean URL anyway to avoid loops if persistent
@@ -560,7 +576,7 @@ function App() {
         onCancel={handleCancelSubscription}
       />
 
-      <div className={view === 'home' ? "w-full max-w-[550px] overflow-hidden h-[600px] flex flex-col backdrop-blur-md rounded-2xl shadow-2xl" : "w-full max-w-[550px] bg-brand-gray/70 backdrop-blur-md rounded-2xl shadow-2xl overflow-hidden h-[600px] flex flex-col"}>
+      <div className={view === 'home' ? "w-full max-w-[550px] overflow-hidden h-[600px] flex flex-col" : "w-full max-w-[550px] bg-brand-gray/70 backdrop-blur-md rounded-2xl shadow-2xl overflow-hidden h-[600px] flex flex-col"}>
 
         {view === 'home' && (
           <HomeScreen setView={setView} activePlan={activePlan} />
@@ -632,7 +648,7 @@ function App() {
         message={confirmDialog.message}
         confirmText={confirmDialog.confirmText || "Delete"}
         onConfirm={confirmDialog.onConfirm}
-        onCancel={() => setConfirmDialog(prev => ({ ...prev, isOpen: false }))}
+        onCancel={confirmDialog.onCancel || (() => setConfirmDialog(prev => ({ ...prev, isOpen: false })))}
       />
     </div>
   );

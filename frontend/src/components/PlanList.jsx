@@ -95,7 +95,7 @@ export default function PlanList({ plans, setView, setSelectedPlanId, createPlan
 
     const exportPlanToCSV = (plan) => {
         try {
-            // Calculate max sets to define number of Rep columns
+            // Calculate max sets to define number of Rep/Rest columns
             let maxSets = 0;
             plan.workouts.forEach(workout => {
                 workout.exercises.forEach(exercise => {
@@ -105,9 +105,12 @@ export default function PlanList({ plans, setView, setSelectedPlanId, createPlan
             });
 
             // Build Headers
-            let headers = ['PlanName', 'Description', 'StartDate', 'Duration', 'Weight', 'Age', 'WorkoutName', 'ExerciseName', 'Sets', 'Type', 'Reps'];
+            let headers = ['PlanName', 'Description', 'StartDate', 'Duration', 'Weight', 'Age', 'WorkoutName', 'ExerciseName', 'Sets', 'Type', 'Reps', 'Rest Type', 'Rest', 'Rest After'];
             for (let i = 1; i <= maxSets; i++) {
                 headers.push(`Rep ${i}`);
+            }
+            for (let i = 1; i <= maxSets; i++) {
+                headers.push(`Rest ${i}`);
             }
 
             const rows = [];
@@ -115,14 +118,14 @@ export default function PlanList({ plans, setView, setSelectedPlanId, createPlan
             // Add First Row with Plan Details (and first exercise if exists)
             // We iterate all workouts and exercises to flatten the data
             if (plan.workouts.length === 0) {
-                // Plan with no workouts
-                rows.push([plan.name, plan.description, plan.startDate, plan.duration, plan.weight, plan.age, '', '', '', '', '', ...Array(maxSets).fill('')]);
+                // Plan with no workouts (padding 2 sets of maxSets for Reps and Rest columns)
+                rows.push([plan.name, plan.description, plan.startDate, plan.duration, plan.weight, plan.age, '', '', '', '', '', '', '', '', ...Array(maxSets * 2).fill('')]);
             } else {
                 plan.workouts.forEach(workout => {
                     if (workout.exercises.length === 0) {
                         rows.push([
                             plan.name, plan.description, plan.startDate, plan.duration, plan.weight, plan.age,
-                            workout.name, '', '', '', '', ...Array(maxSets).fill('')
+                            workout.name, '', '', '', '', '', '', '', ...Array(maxSets * 2).fill('')
                         ]);
                     } else {
                         workout.exercises.forEach(exercise => {
@@ -136,22 +139,42 @@ export default function PlanList({ plans, setView, setSelectedPlanId, createPlan
                                 workout.name,
                                 exercise.name,
                                 exercise.sets,
-                                exercise.type
+                                exercise.type,
                             ];
 
-                            // Handle Reps
+                            // Reps Logic
                             if (exercise.type === 'Normal') {
-                                row.push(exercise.reps || '');
+                                row.push(exercise.reps || ''); // Reps Column
+                                row.push(exercise.restType || 'Normal'); // Rest Type
+                                row.push(exercise.restType === 'Normal' ? (exercise.rest || '') : ''); // Rest Main Column
+                                row.push(exercise.restAfter || ''); // Rest After
+
                                 // Fill Rep 1...N with empty
                                 row.push(...Array(maxSets).fill(''));
                             } else {
-                                // Pyramid / Drop-set
+                                // Custom Type
                                 row.push(''); // Main 'Reps' column is empty
+                                row.push(exercise.restType || 'Normal'); // Rest Type
+                                row.push(exercise.restType === 'Normal' ? (exercise.rest || '') : ''); // Rest Main Column
+                                row.push(exercise.restAfter || ''); // Rest After
+
                                 const repValues = Array.isArray(exercise.reps) ? exercise.reps : [];
                                 for (let i = 0; i < maxSets; i++) {
                                     row.push(repValues[i] || '');
                                 }
                             }
+
+                            // Rest Arrays Logic (for Custom Rest Type)
+                            if (exercise.restType === 'Custom') {
+                                const restValues = Array.isArray(exercise.rest) ? exercise.rest : [];
+                                for (let i = 0; i < maxSets; i++) {
+                                    row.push(restValues[i] || '');
+                                }
+                            } else {
+                                // Fill Rest 1...N with empty
+                                row.push(...Array(maxSets).fill(''));
+                            }
+
                             rows.push(row);
                         });
                     }
@@ -259,8 +282,13 @@ export default function PlanList({ plans, setView, setSelectedPlanId, createPlan
 
             if (row.ExerciseName) {
                 const type = row.Type || 'Normal';
-                let parsedReps = '';
+                const restType = row['Rest Type'] || 'Normal';
+                const restAfter = row['Rest After'] || '';
 
+                let parsedReps = '';
+                let parsedRest = '';
+
+                // REPS Parsing
                 if (type === 'Normal') {
                     // Try 'Reps' column, fallback to 'Rep 1'
                     parsedReps = row.Reps || row['Rep 1'] || '';
@@ -274,9 +302,26 @@ export default function PlanList({ plans, setView, setSelectedPlanId, createPlan
                     }
                     // Fallback if no specific columns found but 'Reps' exists (comma separated maybe?)
                     if (parsedReps.every(r => r === '') && row.Reps) {
-                        // Attempt to split basic 'Reps' column if it looks like "10,12,14"
                         const splitReps = row.Reps.split(',').map(s => s.trim());
                         if (splitReps.length > 0) parsedReps = splitReps;
+                    }
+                }
+
+                // REST Parsing
+                if (restType === 'Normal') {
+                    parsedRest = row.Rest || row['Rest 1'] || '';
+                } else {
+                    // Collect 'Rest 1', 'Rest 2', etc.
+                    const setCount = parseInt(row.Sets) || 0;
+                    parsedRest = [];
+                    for (let i = 1; i <= setCount; i++) {
+                        const restVal = row[`Rest ${i}`] || row[`Rest${i}`] || '';
+                        parsedRest.push(restVal);
+                    }
+                    // Fallback string split
+                    if (parsedRest.every(r => r === '') && row.Rest) {
+                        const splitRest = row.Rest.split(',').map(s => s.trim());
+                        if (splitRest.length > 0) parsedRest = splitRest;
                     }
                 }
 
@@ -285,7 +330,10 @@ export default function PlanList({ plans, setView, setSelectedPlanId, createPlan
                     name: row.ExerciseName,
                     sets: row.Sets || '',
                     reps: parsedReps,
-                    type: type
+                    type: type,
+                    restType: restType,
+                    rest: parsedRest,
+                    restAfter: restAfter
                 });
             }
         });

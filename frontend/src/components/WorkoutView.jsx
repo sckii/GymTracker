@@ -28,7 +28,7 @@ export default function WorkoutView({ workout, setWorkouts, isReadOnly }) {
             if (w.id !== workout.id) return w;
             return {
                 ...w,
-                exercises: [...w.exercises, { id: Date.now().toString(), name: '', sets: '', reps: '', type: 'Normal' }]
+                exercises: [...w.exercises, { id: Date.now().toString(), name: '', sets: '', reps: '', type: 'Normal', restType: 'Normal', rest: '', restAfter: '' }]
             };
         }));
     };
@@ -53,13 +53,14 @@ export default function WorkoutView({ workout, setWorkouts, isReadOnly }) {
             </div>
 
             <div className="flex-1 flex flex-col gap-4 overflow-y-auto px-6 pb-6">
-                {workout.exercises.map(exercise => (
+                {workout.exercises.map((exercise, index) => (
                     <ExerciseCard
                         key={exercise.id}
                         exercise={exercise}
                         updateExercise={updateExercise}
                         deleteExercise={deleteExercise}
                         isReadOnly={isReadOnly}
+                        isLast={index === workout.exercises.length - 1}
                     />
                 ))}
 
