@@ -169,13 +169,14 @@ async function getOrCreatePortalConfig() {
             const productPrices = prices.data
                 .filter(price => (typeof price.product === 'string' ? price.product : price.product.id) === p.id);
 
-            // Deduplicate by interval (take the most recent one)
+            // Deduplicate by interval AND currency (take the most recent one for each combo)
             const uniqueIntervalPrices = new Map<string, Stripe.Price>();
             for (const price of productPrices) {
                 if (price.recurring?.interval) {
-                    const existing = uniqueIntervalPrices.get(price.recurring.interval);
+                    const key = `${price.recurring.interval}-${price.currency}`;
+                    const existing = uniqueIntervalPrices.get(key);
                     if (!existing || price.created > existing.created) {
-                        uniqueIntervalPrices.set(price.recurring.interval, price);
+                        uniqueIntervalPrices.set(key, price);
                     }
                 }
             }
