@@ -17,7 +17,7 @@ export default function ActiveWorkoutSelector({ activePlan, onSelectWorkout }) {
     }
 
     return (
-        <div className="p-8 h-full flex flex-col bg-brand-gray">
+        <div className="p-8 h-full flex flex-col">
             <div className="mb-8">
                 <h2 className="text-3xl font-bold text-gray-100 mb-2">Ready to train?</h2>
                 <p className="text-gray-400 text-lg">Select a workout from <span className="font-semibold text-brand-lime">{activePlan.name}</span></p>

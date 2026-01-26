@@ -1,6 +1,4 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { AgGridReact } from 'ag-grid-react';
-import { AllCommunityModule, ModuleRegistry } from 'ag-grid-community';
 import { ArrowLeft, BarChart2, Table as TableIcon, X, ChevronDown, Check } from 'lucide-react';
 import {
     Chart as ChartJS,
@@ -13,9 +11,6 @@ import {
     Legend,
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
-
-// Register AG Grid Modules
-ModuleRegistry.registerModules([AllCommunityModule]);
 
 // Register ChartJS
 ChartJS.register(
@@ -34,7 +29,7 @@ function CustomDropdown({ label, options, value, onChange, disabled, placeholder
     // Close dropdown when clicking outside
     useEffect(() => {
         const handleClickOutside = (event) => {
-            if (isOpen && !event.target.closest(`.dropdown-${label.replace(/\s/g, '')}`)) {
+            if (isOpen && !event.target.closest(`.dropdown-${label.replace(/[\s\(\)]/g, '')}`)) {
                 setIsOpen(false);
             }
         };
@@ -44,8 +39,10 @@ function CustomDropdown({ label, options, value, onChange, disabled, placeholder
 
     const selectedOption = options.find(o => o.value === value);
 
+    const labelClass = label.replace(/[\s\(\)]/g, '');
+
     return (
-        <div className={`relative flex flex-col gap-1 ${containerClass} dropdown-${label.replace(/\s/g, '')}`}>
+        <div className={`relative flex flex-col gap-1 ${containerClass} dropdown-${labelClass}`}>
             <label className={`text-xs font-bold uppercase tracking-wider ml-1 ${disabled ? 'text-gray-600' : 'text-gray-400'}`}>
                 {label}
             </label>
@@ -55,7 +52,7 @@ function CustomDropdown({ label, options, value, onChange, disabled, placeholder
                 disabled={disabled}
                 className={`w-full flex items-center justify-between bg-brand-light-gray border ${isOpen ? 'border-brand-lime ring-1 ring-brand-lime/50' : 'border-brand-border'} text-gray-100 text-sm rounded-lg px-3 py-2 outline-none transition-all ${disabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-brand-border/30 cursor-pointer'}`}
             >
-                <span className="truncate max-w-[150px] text-left">
+                <span className="truncate max-w-[250px] text-left">
                     {selectedOption ? selectedOption.label : placeholder}
                 </span>
                 <ChevronDown size={16} className={`text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
@@ -94,16 +91,48 @@ export default function StatsView({ logs, plans, activePlanId, onBack }) {
 
     // --- Filters ---
     const [selectedPlanId, setSelectedPlanId] = useState(activePlanId || (plans[0]?.id));
+
+    // Charts Filters
     const [selectedExercise, setSelectedExercise] = useState('');
     const [selectedSet, setSelectedSet] = useState('1');
 
-    // Filter logs by selected plan
+    // Table Filters
+    const [selectedWorkout, setSelectedWorkout] = useState('all');
+
+    // Build a map of exercise IDs to current names for the selected plan
+    const currentExerciseNames = useMemo(() => {
+        const selectedPlan = plans.find(p => p.id === selectedPlanId);
+        const map = new Map();
+        if (selectedPlan && selectedPlan.workouts) {
+            selectedPlan.workouts.forEach(w => {
+                if (w.exercises) {
+                    w.exercises.forEach(ex => {
+                        if (ex.id) map.set(ex.id, ex.name);
+                    });
+                }
+            });
+        }
+        return map;
+    }, [plans, selectedPlanId]);
+
+    // Filter logs by selected plan and normalize exercise names
     const planLogs = useMemo(() => {
         if (!logs) return [];
-        return logs.filter(l => l.plan_id === selectedPlanId).sort((a, b) => new Date(a.date) - new Date(b.date));
-    }, [logs, selectedPlanId]);
 
-    // Available Exercises
+        const filtered = logs.filter(l => l.plan_id === selectedPlanId)
+            .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+        // Return a new array with normalized names
+        return filtered.map(log => ({
+            ...log,
+            exercises: log.exercises ? log.exercises.map(ex => ({
+                ...ex,
+                name: currentExerciseNames.has(ex.id) ? currentExerciseNames.get(ex.id) : ex.name
+            })) : []
+        }));
+    }, [logs, selectedPlanId, currentExerciseNames]);
+
+    // Available Exercises (for Charts)
     const availableExercises = useMemo(() => {
         const exercises = new Set();
         planLogs.forEach(session => {
@@ -114,14 +143,29 @@ export default function StatsView({ logs, plans, activePlanId, onBack }) {
         return Array.from(exercises).sort();
     }, [planLogs]);
 
-    // Auto-select first exercise
+    // Available Workouts (for Table)
+    const availableWorkouts = useMemo(() => {
+        const workouts = new Set();
+        planLogs.forEach(session => {
+            if (session.workoutName) {
+                workouts.add(session.workoutName);
+            }
+        });
+        return Array.from(workouts).sort();
+    }, [planLogs]);
+
+    // Auto-select defaults
     useMemo(() => {
-        if (availableExercises.length > 0 && (!selectedExercise || !availableExercises.includes(selectedExercise))) {
+        // Charts: Default to first exercise
+        if (availableExercises.length > 0 && !selectedExercise && activeTab === 'charts') {
             setSelectedExercise(availableExercises[0]);
         }
-    }, [availableExercises, selectedExercise]);
 
-    // Available Sets
+        // Table: Default to 'all' workouts is already set in state initialization
+    }, [availableExercises, selectedExercise, activeTab]);
+
+
+    // Available Sets (for Charts)
     const availableSets = useMemo(() => {
         if (!selectedExercise) return [];
         let maxSets = 0;
@@ -145,14 +189,14 @@ export default function StatsView({ logs, plans, activePlanId, onBack }) {
         const repsData = [];
 
         planLogs.forEach(session => {
-            const date = new Date(session.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-
+            // Only consider sessions that actually have this exercise
             if (session.exercises) {
                 const ex = session.exercises.find(e => e.name === selectedExercise);
                 if (ex && ex.sets) {
                     const setIndex = parseInt(selectedSet) - 1;
                     const set = ex.sets[setIndex];
                     if (set) {
+                        const date = new Date(session.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
                         labels.push(date);
                         weightData.push(parseFloat(set.weight) || 0);
                         repsData.push(parseFloat(set.reps) || 0);
@@ -190,38 +234,16 @@ export default function StatsView({ logs, plans, activePlanId, onBack }) {
         };
     }, [planLogs, selectedExercise, selectedSet]);
 
-    // --- AG Grid ---
-    const rowData = useMemo(() => {
-        if (!planLogs || planLogs.length === 0) return [];
-        const rows = [];
-        [...planLogs].reverse().forEach(session => {
-            const date = new Date(session.date).toLocaleDateString();
-            if (session.exercises) {
-                session.exercises.forEach(ex => {
-                    ex.sets.forEach((set, i) => {
-                        rows.push({
-                            date: date,
-                            workout: session.workoutName,
-                            exercise: ex.name,
-                            set: i + 1,
-                            reps: set.reps,
-                            weight: set.weight
-                        });
-                    });
-                });
-            }
-        });
-        return rows;
-    }, [planLogs]);
+    // --- Filter logic for Table View ---
+    const filteredLogList = useMemo(() => {
+        let logsToShow = [...planLogs].reverse();
 
-    const [colDefs] = useState([
-        { field: 'date', headerName: 'Date', filter: true, sortable: true, width: 110 },
-        { field: 'workout', headerName: 'Workout', filter: true, sortable: true, width: 140 },
-        { field: 'exercise', headerName: 'Exercise', filter: true, sortable: true, flex: 1 },
-        { field: 'set', headerName: 'Set', width: 70 },
-        { field: 'reps', headerName: 'Reps', width: 80 },
-        { field: 'weight', headerName: 'Kg', width: 80 },
-    ]);
+        if (selectedWorkout && selectedWorkout !== 'all') {
+            logsToShow = logsToShow.filter(session => session.workoutName === selectedWorkout);
+        }
+        return logsToShow;
+    }, [planLogs, selectedWorkout]);
+
 
     const chartOptions = {
         responsive: true,
@@ -257,7 +279,7 @@ export default function StatsView({ logs, plans, activePlanId, onBack }) {
                             <ArrowLeft size={24} />
                         </button>
                         <h2 className="text-2xl font-black italic tracking-tighter text-white">
-                            PROGRESS <span className="text-brand-lime not-italic font-sans font-bold">STATS</span>
+                            PROGRESS <span className="text-brand-lime font-sans font-bold">STATS</span>
                         </h2>
                     </div>
 
@@ -271,45 +293,94 @@ export default function StatsView({ logs, plans, activePlanId, onBack }) {
                     </div>
                 </div>
 
-                {activeTab === 'charts' && (
-                    <div className="flex flex-wrap gap-3 p-4 bg-brand-gray/50 rounded-xl border border-brand-border/50 shadow-inner items-end">
-                        <CustomDropdown
-                            label="Plan"
-                            options={plans.map(p => ({
-                                value: p.id,
-                                label: p.isActive ? `★ ${p.name} (Active)` : p.name
-                            }))}
-                            value={selectedPlanId}
-                            onChange={setSelectedPlanId}
-                        />
+                <div className="flex flex-wrap gap-3 p-4 bg-brand-gray/50 rounded-xl border border-brand-border/50 shadow-inner items-end">
+                    <CustomDropdown
+                        label="Plan"
+                        options={plans.map(p => ({
+                            value: p.id,
+                            label: p.isActive ? `★ ${p.name} (Active)` : p.name
+                        }))}
+                        value={selectedPlanId}
+                        onChange={setSelectedPlanId}
+                    />
 
-                        <CustomDropdown
-                            label="Exercise"
-                            options={availableExercises.map(ex => ({ value: ex, label: ex }))}
-                            value={selectedExercise}
-                            onChange={setSelectedExercise}
-                            placeholder={availableExercises.length === 0 ? "No data..." : "Select..."}
-                            disabled={availableExercises.length === 0}
-                        />
+                    {/* Conditional Dropdown: Exercise for Charts, Workout for Table */}
+                    {activeTab === 'charts' ? (
+                        <>
+                            <CustomDropdown
+                                label="Exercise"
+                                options={availableExercises.map(ex => ({ value: ex, label: ex }))}
+                                value={selectedExercise}
+                                onChange={setSelectedExercise}
+                                placeholder={availableExercises.length === 0 ? "No data..." : "Select..."}
+                                disabled={availableExercises.length === 0}
+                            />
 
+                            <CustomDropdown
+                                label="Set"
+                                options={availableSets.map(s => ({ value: s, label: `Set ${s}` }))}
+                                value={selectedSet}
+                                onChange={setSelectedSet}
+                                disabled={availableSets.length === 0}
+                                containerClass="w-[100px]"
+                            />
+                        </>
+                    ) : (
                         <CustomDropdown
-                            label="Set"
-                            options={availableSets.map(s => ({ value: s, label: `Set ${s}` }))}
-                            value={selectedSet}
-                            onChange={setSelectedSet}
-                            disabled={availableSets.length === 0}
-                            containerClass="w-[100px]"
+                            label="Workout"
+                            options={[{ value: 'all', label: 'All Workouts' }, ...availableWorkouts.map(w => ({ value: w, label: w }))]}
+                            value={selectedWorkout}
+                            onChange={setSelectedWorkout}
+                            placeholder="Select Workout..."
                         />
-                    </div>
-                )}
+                    )}
+                </div>
             </div>
 
-            <div className="flex-1 p-6 overflow-hidden relative">
+            <div className="flex-1 p-6 overflow-y-auto overflow-x-hidden relative custom-scrollbar">
                 {activeTab === 'table' ? (
-                    <div className="h-full w-full ag-theme-alpine-dark shadow-2xl rounded-xl overflow-hidden border border-brand-border">
-                        <div style={{ height: '100%', width: '100%' }}>
-                            <AgGridReact rowData={rowData} columnDefs={colDefs} pagination={true} paginationPageSize={20} />
-                        </div>
+                    <div className="flex flex-col gap-4 pb-20">
+                        {filteredLogList.length === 0 ? (
+                            <div className="text-center text-gray-500 py-10">No logs found matching your filters.</div>
+                        ) : (
+                            filteredLogList.map((session) => (
+                                <div key={session.id} className="bg-brand-light-gray border border-brand-border rounded-xl p-5 shadow-sm animate-in fade-in slide-in-from-bottom-2">
+                                    <div className="flex items-center justify-between mb-4 border-b border-brand-border/50 pb-3">
+                                        <div>
+                                            <h3 className="text-lg font-bold text-gray-100">{session.workoutName}</h3>
+                                            <div className="text-xs text-gray-400 font-medium flex items-center gap-2">
+                                                <span>{new Date(session.date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                                                <span className="w-1 h-1 rounded-full bg-gray-600"></span>
+                                                <span>{session.duration ? `${Math.floor(session.duration / 60)}m` : 'No duration'}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        {session.exercises && session.exercises.map((ex, exIdx) => (
+                                            <div key={`${session.id}-${ex.id || exIdx}`} className="bg-brand-gray/50 rounded-lg p-3 border border-brand-border/30">
+                                                <div className="flex justify-between items-center mb-2">
+                                                    <span className="text-sm font-bold text-brand-lime truncate">{ex.name}</span>
+                                                    <span className="text-[10px] text-gray-500 bg-brand-gray px-1.5 py-0.5 rounded border border-brand-border/30">{ex.sets?.length || 0} Sets</span>
+                                                </div>
+                                                <div className="space-y-1">
+                                                    {ex.sets && ex.sets.map((set, sIdx) => (
+                                                        <div key={sIdx} className="flex items-center justify-between text-xs bg-brand-gray rounded px-2 py-1.5 border border-brand-border/20">
+                                                            <span className="text-gray-400 w-8">#{sIdx + 1}</span>
+                                                            <div className="flex items-center gap-3">
+                                                                <span className="font-mono text-white min-w-[40px] text-right">{set.weight}<span className="text-gray-600 text-[10px] ml-0.5">kg</span></span>
+                                                                <span className="text-gray-600">x</span>
+                                                                <span className="font-mono text-purple-400 min-w-[30px] text-right">{set.reps}<span className="text-gray-600 text-[10px] ml-0.5">reps</span></span>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            ))
+                        )}
                     </div>
                 ) : (
                     <div className="h-full w-full bg-brand-light-gray/20 p-4 rounded-xl shadow-inner border border-brand-border/50 backdrop-blur-sm flex flex-col">
@@ -321,11 +392,18 @@ export default function StatsView({ logs, plans, activePlanId, onBack }) {
                             </div>
                         ) : (
                             <div className="relative w-full flex-1 min-h-0">
-                                <Line options={chartOptions} data={detailedChartData} />
+                                {!selectedExercise ? (
+                                    <div className="flex-1 flex flex-col items-center justify-center text-gray-500">
+                                        <BarChart2 size={48} className="mb-4 opacity-50 text-brand-lime" />
+                                        <p className="text-md font-medium text-gray-300">Select a specific Exercise to view Charts</p>
+                                    </div>
+                                ) : (
+                                    <Line options={chartOptions} data={detailedChartData} />
+                                )}
                             </div>
                         )}
 
-                        {availableExercises.length > 0 && (
+                        {activeTab === 'charts' && availableExercises.length > 0 && selectedExercise && (
                             <div className="mt-4 flex gap-6 justify-center text-xs text-gray-400">
                                 <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-brand-lime"></div><span>Weight (Left Axis)</span></div>
                                 <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-purple-500"></div><span>Reps (Right Axis)</span></div>

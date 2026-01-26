@@ -175,7 +175,7 @@ export default function WorkoutSession({ workout, previousLog, onFinish, onBack 
     };
 
     return (
-        <div className="flex flex-col h-full bg-brand-gray">
+        <div className="flex flex-col h-full">
             {/* Header */}
             <div className="bg-brand-light-gray p-6 pb-4 border-b border-brand-border flex justify-between items-center sticky top-0 z-10 shadow-sm">
                 <div className="flex items-center gap-4">

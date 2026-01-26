@@ -608,7 +608,7 @@ function App() {
         )}
 
         {view === 'start-workout' && (
-          <div className="flex flex-col h-full bg-brand-gray relative">
+          <div className="flex flex-col h-full relative">
             <div className="p-6">
               <button onClick={() => setView('home')} className="mb-2 text-sm text-gray-400 hover:text-white flex items-center gap-1">
                 <ArrowLeft size={24} /> Back
