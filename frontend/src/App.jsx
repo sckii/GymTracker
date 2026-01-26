@@ -19,7 +19,7 @@ import LoadingScreen from './components/LoadingScreen';
 
 import { SUBSCRIPTION_PLANS, DEFAULT_PLAN } from './config/subscriptionPlans';
 
-const BASE_API_URL = 'https://gymtracker.api.sckii.com';
+const BASE_API_URL = 'https://gymtracker-api.sckii.com';
 
 function App() {
   const [session, setSession] = useState(null);
