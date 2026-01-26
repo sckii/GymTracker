@@ -10,8 +10,6 @@ export default function PlanList({ plans, setView, setSelectedPlanId, createPlan
     const [importLinkInput, setImportLinkInput] = useState('');
     const [hasCopied, setHasCopied] = useState(false);
 
-    // --- Actions ---
-
     const handleImportFileClick = () => {
         fileInputRef.current.click();
         setActiveModal(null);
@@ -25,7 +23,12 @@ export default function PlanList({ plans, setView, setSelectedPlanId, createPlan
 
             const plan = parseShareLink(token);
             if (plan) {
-                addPlan(plan);
+                let addPlanRes = addPlan(plan);
+
+                if (addPlanRes === "limit_reached") {
+                    return;
+                }
+
                 showNotification('Plan imported from link!', 'success');
                 setActiveModal(null);
                 setImportLinkInput('');
@@ -295,11 +298,16 @@ export default function PlanList({ plans, setView, setSelectedPlanId, createPlan
         if (!file) return;
 
         const reader = new FileReader();
-        reader.onload = (event) => {
+        reader.onload = async (event) => {
             try {
                 const plan = parseCSV(event.target.result);
                 if (plan) {
-                    addPlan(plan);
+                    let addPlanRes = await addPlan(plan);
+
+                    if (addPlanRes === "limit_reached") {
+                        return;
+                    }
+
                     showNotification('Plan imported successfully!', 'success');
                     setActiveModal(null);
                 }
@@ -317,26 +325,26 @@ export default function PlanList({ plans, setView, setSelectedPlanId, createPlan
             <div className="p-6 pb-2 flex items-center gap-4">
                 <button
                     onClick={() => setView('home')}
-                    className="p-2 hover:bg-gray-100 rounded-full text-gray-500 transition-colors"
+                    className="p-2 hover:bg-brand-light-gray rounded-full text-gray-400 hover:text-white transition-colors"
                 >
                     <ArrowLeft size={24} />
                 </button>
-                <h2 className="text-2xl font-bold text-gray-800">My Plans</h2>
+                <h2 className="text-2xl font-bold text-gray-100">My Plans</h2>
             </div>
 
             <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-4">
                 {plans.map(plan => (
                     <div
                         key={plan.id}
-                        className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all flex justify-between items-center group"
+                        className="bg-brand-light-gray p-5 rounded-xl shadow-lg border-none hover:shadow-xl transition-all flex justify-between items-center group"
                     >
                         <div
                             onClick={() => { setSelectedPlanId(plan.id); setView('plan-editor'); }}
                             className="flex-1 cursor-pointer"
                         >
-                            <h3 className="text-lg font-bold text-gray-800">{plan.name || 'Untitled Plan'}</h3>
+                            <h3 className="text-lg font-bold text-gray-100">{plan.name || 'Untitled Plan'}</h3>
                             <p className="text-sm text-gray-400">{plan.description || 'No description'}</p>
-                            {plan.isActive && <span className="inline-block mt-1 text-xs font-bold text-blue-500 bg-blue-50 px-2 py-0.5 rounded">ACTIVE</span>}
+                            {plan.isActive && <span className="inline-block mt-1 text-xs font-bold text-brand-lime bg-brand-lime/10 px-2 py-0.5 rounded">ACTIVE</span>}
                         </div>
                         <div className="flex items-center gap-2">
                             <button
@@ -345,7 +353,7 @@ export default function PlanList({ plans, setView, setSelectedPlanId, createPlan
                                     setSelectedPlanForExport(plan);
                                     setActiveModal('export');
                                 }}
-                                className="p-2 text-gray-300 hover:text-blue-500 hover:bg-blue-50 rounded-full transition-colors"
+                                className="p-2 text-gray-500 hover:text-blue-400 hover:bg-blue-500/10 rounded-full transition-colors"
                             >
                                 <Share2 size={20} />
                             </button>
@@ -354,26 +362,26 @@ export default function PlanList({ plans, setView, setSelectedPlanId, createPlan
                                     e.stopPropagation();
                                     deletePlan(plan.id);
                                 }}
-                                className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
+                                className="p-2 text-gray-500 hover:text-red-400 hover:bg-red-500/10 rounded-full transition-colors"
                             >
                                 <Trash2 size={20} />
                             </button>
                             <ChevronRight
                                 onClick={() => { setSelectedPlanId(plan.id); setView('plan-editor'); }}
-                                className="text-gray-300 group-hover:text-gray-500 transition-colors cursor-pointer"
+                                className="text-gray-600 group-hover:text-gray-300 transition-colors cursor-pointer"
                             />
                         </div>
                     </div>
                 ))}
 
                 {plans.length === 0 && (
-                    <div className="text-center text-gray-400 py-10">
+                    <div className="text-center text-gray-500 py-10">
                         No plans created yet.
                     </div>
                 )}
             </div>
 
-            <div className="p-6 bg-white border-t border-gray-100 flex gap-3">
+            <div className="p-6 bg-brand-gray border-t border-brand-border flex gap-3">
                 <input
                     type="file"
                     accept=".csv"
@@ -383,14 +391,14 @@ export default function PlanList({ plans, setView, setSelectedPlanId, createPlan
                 />
                 <button
                     onClick={() => setActiveModal('import')}
-                    className="flex-1 py-3 px-2 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition-colors flex items-center justify-center gap-2"
+                    className="flex-1 py-3 px-2 bg-brand-light-gray text-gray-300 rounded-xl font-bold hover:bg-brand-border transition-colors flex items-center justify-center gap-2"
                 >
                     <Upload size={16} />
                     Import
                 </button>
                 <button
                     onClick={createPlan}
-                    className="flex-[2] py-4 bg-gray-900 text-white rounded-xl font-bold hover:bg-black transition-colors flex items-center justify-center gap-2"
+                    className="flex-[2] py-4 bg-brand-lime text-black rounded-xl font-bold hover:bg-brand-lime-mid transition-colors flex items-center justify-center gap-2"
                 >
                     <Plus size={16} />
                     New Plan
@@ -399,16 +407,16 @@ export default function PlanList({ plans, setView, setSelectedPlanId, createPlan
 
             {/* --- MODALS --- */}
             {activeModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
-                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-slide-up">
-                        <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-                            <h3 className="font-bold text-gray-800">
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
+                    <div className="bg-brand-gray rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-slide-up">
+                        <div className="p-4 border-b border-brand-border/10 flex justify-between items-center bg-brand-light-gray/50">
+                            <h3 className="font-bold text-gray-100">
                                 {activeModal === 'export' && 'Share Plan'}
                                 {activeModal === 'import' && 'Import Plan'}
                                 {activeModal === 'share-result' && 'Share Link'}
                                 {activeModal === 'import-link' && 'Paste Link'}
                             </h3>
-                            <button onClick={() => setActiveModal(null)} className="p-1 hover:bg-gray-200 rounded-full text-gray-500">
+                            <button onClick={() => setActiveModal(null)} className="p-1 hover:bg-brand-light-gray rounded-full text-gray-400">
                                 <X size={20} />
                             </button>
                         </div>
@@ -419,25 +427,25 @@ export default function PlanList({ plans, setView, setSelectedPlanId, createPlan
                                 <div className="space-y-3">
                                     <button
                                         onClick={() => exportPlanToCSV(selectedPlanForExport)}
-                                        className="w-full p-4 border border-gray-200 rounded-xl flex items-center gap-4 hover:border-blue-500 hover:bg-blue-50 transition-all group text-left"
+                                        className="w-full p-4 border border-brand-border rounded-xl flex items-center gap-4 hover:border-blue-500/50 hover:bg-blue-500/10 transition-all group text-left"
                                     >
-                                        <div className="p-3 bg-blue-100 text-blue-600 rounded-full group-hover:bg-blue-200">
+                                        <div className="p-3 bg-blue-500/20 text-blue-400 rounded-full group-hover:bg-blue-500/30">
                                             <FileText size={24} />
                                         </div>
                                         <div>
-                                            <span className="block font-bold text-gray-800">Export CSV</span>
+                                            <span className="block font-bold text-gray-200">Export CSV</span>
                                             <span className="text-xs text-gray-500">Download file to save</span>
                                         </div>
                                     </button>
                                     <button
                                         onClick={() => handleGenerateLink(selectedPlanForExport)}
-                                        className="w-full p-4 border border-gray-200 rounded-xl flex items-center gap-4 hover:border-purple-500 hover:bg-purple-50 transition-all group text-left"
+                                        className="w-full p-4 border border-brand-border rounded-xl flex items-center gap-4 hover:border-purple-500/50 hover:bg-purple-500/10 transition-all group text-left"
                                     >
-                                        <div className="p-3 bg-purple-100 text-purple-600 rounded-full group-hover:bg-purple-200">
+                                        <div className="p-3 bg-purple-500/20 text-purple-400 rounded-full group-hover:bg-purple-500/30">
                                             <LinkIcon size={24} />
                                         </div>
                                         <div>
-                                            <span className="block font-bold text-gray-800">Share Link</span>
+                                            <span className="block font-bold text-gray-200">Share Link</span>
                                             <span className="text-xs text-gray-500">Copy unique URL</span>
                                         </div>
                                     </button>
@@ -449,25 +457,25 @@ export default function PlanList({ plans, setView, setSelectedPlanId, createPlan
                                 <div className="space-y-3">
                                     <button
                                         onClick={handleImportFileClick}
-                                        className="w-full p-4 border border-gray-200 rounded-xl flex items-center gap-4 hover:border-blue-500 hover:bg-blue-50 transition-all group text-left"
+                                        className="w-full p-4 border border-brand-border rounded-xl flex items-center gap-4 hover:border-blue-500/50 hover:bg-blue-500/10 transition-all group text-left"
                                     >
-                                        <div className="p-3 bg-blue-100 text-blue-600 rounded-full group-hover:bg-blue-200">
+                                        <div className="p-3 bg-blue-500/20 text-blue-400 rounded-full group-hover:bg-blue-500/30">
                                             <Upload size={24} />
                                         </div>
                                         <div>
-                                            <span className="block font-bold text-gray-800">Upload File</span>
+                                            <span className="block font-bold text-gray-200">Upload File</span>
                                             <span className="text-xs text-gray-500">Import .csv file</span>
                                         </div>
                                     </button>
                                     <button
                                         onClick={() => setActiveModal('import-link')}
-                                        className="w-full p-4 border border-gray-200 rounded-xl flex items-center gap-4 hover:border-purple-500 hover:bg-purple-50 transition-all group text-left"
+                                        className="w-full p-4 border border-brand-border rounded-xl flex items-center gap-4 hover:border-purple-500/50 hover:bg-purple-500/10 transition-all group text-left"
                                     >
-                                        <div className="p-3 bg-purple-100 text-purple-600 rounded-full group-hover:bg-purple-200">
+                                        <div className="p-3 bg-purple-500/20 text-purple-400 rounded-full group-hover:bg-purple-500/30">
                                             <LinkIcon size={24} />
                                         </div>
                                         <div>
-                                            <span className="block font-bold text-gray-800">Paste Link</span>
+                                            <span className="block font-bold text-gray-200">Paste Link</span>
                                             <span className="text-xs text-gray-500">Import from URL</span>
                                         </div>
                                     </button>
@@ -477,13 +485,13 @@ export default function PlanList({ plans, setView, setSelectedPlanId, createPlan
                             {/* SHARE RESULT (DISPLAY LINK) */}
                             {activeModal === 'share-result' && (
                                 <div className="flex flex-col gap-4">
-                                    <p className="text-sm text-gray-500 text-center">Copy this link to share your workout plan.</p>
-                                    <div className="bg-gray-100 p-3 rounded-lg break-all text-xs font-mono text-gray-600 border border-gray-200 max-h-32 overflow-y-auto">
+                                    <p className="text-sm text-gray-400 text-center">Copy this link to share your workout plan.</p>
+                                    <div className="bg-black/30 p-3 rounded-lg break-all text-xs font-mono text-gray-300 border border-brand-border max-h-32 overflow-y-auto">
                                         {generatedLink}
                                     </div>
                                     <button
                                         onClick={copyToClipboard}
-                                        className={`w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all ${hasCopied ? 'bg-green-500 text-white' : 'bg-gray-900 text-white hover:bg-black'}`}
+                                        className={`w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all ${hasCopied ? 'bg-green-500 text-white' : 'bg-brand-lime text-black hover:bg-brand-lime-mid'}`}
                                     >
                                         {hasCopied ? <Check size={18} /> : <Copy size={18} />}
                                         {hasCopied ? 'Copied!' : 'Copy Link'}
@@ -494,16 +502,16 @@ export default function PlanList({ plans, setView, setSelectedPlanId, createPlan
                             {/* IMPORT LINK INPUT */}
                             {activeModal === 'import-link' && (
                                 <div className="flex flex-col gap-4">
-                                    <p className="text-sm text-gray-500">Paste the shared link below:</p>
+                                    <p className="text-sm text-gray-400">Paste the shared link below:</p>
                                     <textarea
-                                        className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm min-h-[100px]"
+                                        className="w-full p-3 bg-brand-light-gray border border-brand-border rounded-xl focus:ring-2 focus:ring-brand-lime outline-none text-sm min-h-[100px] text-gray-200 placeholder-gray-600"
                                         placeholder="https://..."
                                         value={importLinkInput}
                                         onChange={(e) => setImportLinkInput(e.target.value)}
                                     />
                                     <button
                                         onClick={handleImportLinkSubmit}
-                                        className="w-full py-3 bg-gray-900 text-white rounded-xl font-bold hover:bg-black transition-colors"
+                                        className="w-full py-3 bg-brand-lime text-black rounded-xl font-bold hover:bg-brand-lime-mid transition-colors"
                                     >
                                         Import Plan
                                     </button>

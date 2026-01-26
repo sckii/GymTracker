@@ -11,6 +11,10 @@ export default {
         'brand-lime': '#B6F500',
         'brand-lime-mid': '#A4DD00',
         'brand-lime-dark': '#98CD00',
+        'brand-dark': '#09090b',      // Zinc 950
+        'brand-gray': '#18181b',      // Zinc 900
+        'brand-light-gray': '#27272a', // Zinc 800
+        'brand-border': '#3f3f46',    // Zinc 700
       },
       animation: {
         blob: "blob 7s infinite",

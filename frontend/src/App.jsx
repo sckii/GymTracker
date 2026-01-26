@@ -51,7 +51,7 @@ function App() {
   const [isDataLoaded, setIsDataLoaded] = useState(false);
 
   // UI State
-  const [notification, setNotification] = useState(null); // { message, type }
+  const [notification, setNotification] = useState(null);
   const [confirmDialog, setConfirmDialog] = useState({
     isOpen: false,
     title: '',
@@ -303,7 +303,7 @@ function App() {
   const createPlan = async () => {
     // Check Subscription Limits
     if (plans.length >= userPlan.maxPlans) {
-      showNotification(`Plan limit reached (${userPlan.maxPlans}) for ${userPlan.name} tier.`, 'error');
+      showNotification(`Plan limit reached (${userPlan.maxPlans}) for ${userPlan.name} tier. Upgrade to create more.`, 'error');
       return;
     }
 
@@ -348,6 +348,12 @@ function App() {
   };
 
   const addPlan = async (newPlan) => {
+    // Check Subscription Limits
+    if (plans.length >= userPlan.maxPlans) {
+      showNotification(`Plan limit reached ${userPlan.maxPlans} for ${userPlan.name} tier. Upgrade to import more.`, 'error');
+      return "limit_reached";
+    }
+
     // Force a new valid UUID for the plan to match Supabase schema, ignoring any legacy/timestamp IDs from CSV
     const securePlan = { ...newPlan, id: generateUUID() };
 
@@ -408,21 +414,48 @@ function App() {
   };
 
   const deletePlan = async (planId) => {
+    // Check if the plan has logs BEFORE showing the modal
+    const planLogs = logs.filter(l => l.plan_id === planId);
+    const hasLogs = planLogs.length > 0;
+
     setConfirmDialog({
       isOpen: true,
-      title: 'Delete Plan',
-      message: 'Are you sure you want to delete this plan? This action cannot be undone.',
+      title: hasLogs ? 'Delete Plan & History?' : 'Delete Plan?',
+      message: hasLogs
+        ? `This plan has ${planLogs.length} workout log(s). Deleting this plan will also remove all its history. Are you sure?`
+        : 'Are you sure you want to delete this plan? This action cannot be undone.',
+      confirmText: hasLogs ? 'Delete All' : 'Delete',
       onConfirm: async () => {
-        setPlans(prev => prev.filter(p => p.id !== planId));
-        if (selectedPlanId === planId) {
-          setSelectedPlanId(null);
-        }
-        showNotification('Plan deleted successfully', 'success');
         setConfirmDialog(prev => ({ ...prev, isOpen: false }));
 
         if (session) {
+          // If has logs, delete them first
+          if (hasLogs) {
+            const { error: logsError } = await supabase.from('logs').delete().eq('plan_id', planId);
+            if (logsError) {
+              console.error('Logs delete error', logsError);
+              showNotification('Failed to delete logs: ' + logsError.message, 'error');
+              return;
+            }
+            // Also update local state
+            setLogs(prev => prev.filter(l => l.plan_id !== planId));
+          }
+
+          // Delete the plan
           const { error } = await supabase.from('plans').delete().eq('id', planId);
-          if (error) console.error('Error deleting plan:', error);
+
+          if (error) {
+            console.error('Error deleting plan:', error);
+            showNotification(`Failed to delete plan: ${error.message}`, 'error');
+          } else {
+            setPlans(prev => prev.filter(p => p.id !== planId));
+            if (selectedPlanId === planId) setSelectedPlanId(null);
+            showNotification(hasLogs ? 'Plan and history deleted successfully' : 'Plan deleted successfully', 'success');
+          }
+        } else {
+          setPlans(prev => prev.filter(p => p.id !== planId));
+          if (selectedPlanId === planId) setSelectedPlanId(null);
+          showNotification('Plan deleted locally', 'success');
         }
       }
     });
@@ -512,11 +545,11 @@ function App() {
   const selectedPlan = plans.find(p => p.id === selectedPlanId);
 
   return (
-    <div className="flex items-center justify-center min-h-screen p-4 relative">
+    <div className="flex items-center justify-center min-h-screen p-4 relative font-sans">
       <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
-        <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-[#FFFADC] rounded-full mix-blend-multiply filter blur-3xl opacity-60 animate-blob"></div>
-        <div className="absolute top-[-10%] right-[-10%] w-96 h-96 bg-[#B6F500]/40 rounded-full mix-blend-multiply filter blur-3xl opacity-60 animate-blob animation-delay-2000"></div>
-        <div className="absolute bottom-[-20%] left-[20%] w-96 h-96 bg-[#A4DD00]/30 rounded-full mix-blend-multiply filter blur-3xl opacity-60 animate-blob animation-delay-4000"></div>
+        <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-brand-lime rounded-full mix-blend-screen filter blur-[60px] opacity-20 animate-blob"></div>
+        <div className="absolute top-[-10%] right-[-10%] w-96 h-96 bg-purple-500/20 rounded-full mix-blend-screen filter blur-[60px] opacity-60 animate-blob animation-delay-2000"></div>
+        <div className="absolute bottom-[-20%] left-[20%] w-96 h-96 bg-brand-lime-mid/20 rounded-full mix-blend-screen filter blur-[60px] opacity-40 animate-blob animation-delay-4000"></div>
       </div>
 
       <UserProfile
@@ -527,7 +560,7 @@ function App() {
         onCancel={handleCancelSubscription}
       />
 
-      <div className={view === 'home' ? "w-full max-w-[550px] overflow-hidden h-[600px] flex flex-col border border-gray-100" : "w-full max-w-[550px] bg-white rounded-2xl shadow-xl overflow-hidden h-[580px] flex flex-col border border-gray-100"}>
+      <div className={view === 'home' ? "w-full max-w-[550px] overflow-hidden h-[600px] flex flex-col backdrop-blur-md rounded-2xl shadow-2xl" : "w-full max-w-[550px] bg-brand-gray/70 backdrop-blur-md rounded-2xl shadow-2xl overflow-hidden h-[600px] flex flex-col"}>
 
         {view === 'home' && (
           <HomeScreen setView={setView} activePlan={activePlan} />
@@ -554,9 +587,9 @@ function App() {
         )}
 
         {view === 'start-workout' && (
-          <div className="flex flex-col h-full bg-white relative">
+          <div className="flex flex-col h-full bg-brand-gray relative">
             <div className="p-6">
-              <button onClick={() => setView('home')} className="mb-2 text-sm text-gray-500 hover:text-gray-800 flex items-center gap-1">
+              <button onClick={() => setView('home')} className="mb-2 text-sm text-gray-400 hover:text-white flex items-center gap-1">
                 <ArrowLeft size={24} /> Back
               </button>
             </div>

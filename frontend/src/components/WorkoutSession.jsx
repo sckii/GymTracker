@@ -107,16 +107,16 @@ export default function WorkoutSession({ workout, previousLog, onFinish, onBack 
     };
 
     return (
-        <div className="flex flex-col h-full bg-gray-50">
+        <div className="flex flex-col h-full bg-brand-gray">
             {/* Header */}
-            <div className="bg-white p-6 pb-4 border-b border-gray-100 flex justify-between items-center sticky top-0 z-10 shadow-sm">
+            <div className="bg-brand-light-gray p-6 pb-4 border-b border-brand-border flex justify-between items-center sticky top-0 z-10 shadow-sm">
                 <div className="flex items-center gap-4">
-                    <button onClick={onBack} className="p-2 hover:bg-gray-100 rounded-full text-gray-500">
+                    <button onClick={onBack} className="p-2 hover:bg-brand-border rounded-full text-gray-400 hover:text-white transition-colors">
                         <ArrowLeft size={24} />
                     </button>
                     <div>
-                        <h2 className="text-xl font-bold text-gray-900">{workout.name}</h2>
-                        <div className="flex items-center gap-1.5 text-blue-600 font-medium text-sm">
+                        <h2 className="text-xl font-bold text-gray-100">{workout.name}</h2>
+                        <div className="flex items-center gap-1.5 text-brand-lime font-medium text-sm">
                             <Clock size={14} />
                             <span>{formatTime(duration)}</span>
                         </div>
@@ -124,7 +124,7 @@ export default function WorkoutSession({ workout, previousLog, onFinish, onBack 
                 </div>
                 <button
                     onClick={handleFinish}
-                    className="bg-green-500 hover:bg-green-600 text-white px-5 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 shadow-sm transition-colors"
+                    className="bg-brand-lime hover:bg-brand-lime-mid text-black px-5 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 shadow-sm transition-colors"
                 >
                     <Save size={18} />
                     <span>Finish</span>
@@ -134,18 +134,18 @@ export default function WorkoutSession({ workout, previousLog, onFinish, onBack 
             {/* Exercises List */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
                 {workout.exercises.map((exercise) => (
-                    <div key={exercise.id} className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+                    <div key={exercise.id} className="bg-brand-light-gray rounded-2xl p-5 shadow-sm border border-brand-border">
                         <div className="mb-4">
-                            <h3 className="text-lg font-bold text-gray-800">{exercise.name}</h3>
+                            <h3 className="text-lg font-bold text-gray-100">{exercise.name}</h3>
                             <div className="flex gap-2 text-xs text-gray-400 font-medium uppercase tracking-wider mt-1">
-                                <span className="bg-gray-100 px-2 py-0.5 rounded">{exercise.sets} Sets</span>
-                                <span className="bg-gray-100 px-2 py-0.5 rounded text-blue-600">{exercise.type}</span>
+                                <span className="bg-brand-gray px-2 py-0.5 rounded">{exercise.sets} Sets</span>
+                                <span className="bg-brand-gray px-2 py-0.5 rounded text-brand-lime">{exercise.type}</span>
                             </div>
                         </div>
 
                         <div className="space-y-3">
                             {/* Header Row */}
-                            <div className="grid grid-cols-10 gap-2 text-xs font-bold text-gray-400 uppercase text-center mb-2 px-2">
+                            <div className="grid grid-cols-10 gap-2 text-xs font-bold text-gray-500 uppercase text-center mb-2 px-2">
                                 <div className="col-span-1">Set</div>
                                 <div className="col-span-3">Target</div>
                                 <div className="col-span-2">Kg</div>
@@ -155,7 +155,7 @@ export default function WorkoutSession({ workout, previousLog, onFinish, onBack 
 
                             {Array.from({ length: parseInt(exercise.sets) || 0 }).map((_, i) => {
                                 const isCompleted = logs[exercise.id]?.[i]?.completed;
-                                const setClass = isCompleted ? 'bg-green-50 border-green-100' : 'bg-gray-50 border-gray-100';
+                                const setClass = isCompleted ? 'bg-brand-lime/10 border-brand-lime/30' : 'bg-brand-gray border-brand-border';
                                 const weightError = validationErrors[`${exercise.id}-${i}-weight`];
                                 const repsError = validationErrors[`${exercise.id}-${i}-reps`];
                                 const prevStats = getPreviousStats(exercise.id, i);
@@ -167,7 +167,7 @@ export default function WorkoutSession({ workout, previousLog, onFinish, onBack 
                                         <div className="col-span-3 flex flex-col items-center justify-center">
                                             <span className="text-sm font-medium text-gray-400">{getTargetLabel(exercise, i)}</span>
                                             {prevStats && (
-                                                <span className="text-[10px] text-gray-400 bg-gray-100 px-1 rounded mt-0.5 whitespace-nowrap">
+                                                <span className="text-[10px] text-gray-500 bg-black/20 px-1 rounded mt-0.5 whitespace-nowrap">
                                                     Last: {prevStats.weight}kg/{prevStats.reps}
                                                 </span>
                                             )}
@@ -178,7 +178,7 @@ export default function WorkoutSession({ workout, previousLog, onFinish, onBack 
                                                 type="number"
                                                 min="0"
                                                 placeholder="-"
-                                                className={`w-full text-center bg-white rounded-lg py-1.5 text-sm font-bold text-gray-700 outline-none focus:ring-2 focus:ring-blue-200 border transition-all ${weightError ? 'border-red-500 ring-1 ring-red-200' : 'border-transparent focus:border-blue-300'} ${isCompleted ? 'text-green-700' : ''}`}
+                                                className={`w-full text-center bg-brand-dark rounded-lg py-1.5 text-sm font-bold text-gray-200 outline-none focus:ring-2 focus:ring-brand-lime border transition-all appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none ${weightError ? 'border-red-500 ring-1 ring-red-500/30' : 'border-transparent focus:border-brand-lime'} ${isCompleted ? 'text-brand-lime' : ''}`}
                                                 value={logs[exercise.id]?.[i]?.weight || ''}
                                                 onChange={(e) => handleLogChange(exercise.id, i, 'weight', e.target.value)}
                                             />
@@ -189,7 +189,7 @@ export default function WorkoutSession({ workout, previousLog, onFinish, onBack 
                                                 type="number"
                                                 min="0"
                                                 placeholder={getTargetLabel(exercise, i)}
-                                                className={`w-full text-center bg-white rounded-lg py-1.5 text-sm font-bold text-gray-700 outline-none focus:ring-2 focus:ring-blue-200 border transition-all ${repsError ? 'border-red-500 ring-1 ring-red-200' : 'border-transparent focus:border-blue-300'} ${isCompleted ? 'text-green-700' : ''}`}
+                                                className={`w-full text-center bg-brand-dark rounded-lg py-1.5 text-sm font-bold text-gray-200 outline-none focus:ring-2 focus:ring-brand-lime border transition-all appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none ${repsError ? 'border-red-500 ring-1 ring-red-500/30' : 'border-transparent focus:border-brand-lime'} ${isCompleted ? 'text-brand-lime' : ''}`}
                                                 value={logs[exercise.id]?.[i]?.reps || ''}
                                                 onChange={(e) => handleLogChange(exercise.id, i, 'reps', e.target.value)}
                                             />
@@ -198,7 +198,7 @@ export default function WorkoutSession({ workout, previousLog, onFinish, onBack 
                                         <div className="col-span-2 flex justify-center">
                                             <button
                                                 onClick={() => toggleSetComplete(exercise.id, i)}
-                                                className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${isCompleted ? 'bg-green-500 text-white shadow-md scale-105' : 'bg-gray-200 text-gray-400 hover:bg-gray-300'}`}
+                                                className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${isCompleted ? 'bg-brand-lime text-black shadow-md scale-105' : 'bg-brand-dark text-gray-600 hover:bg-black hover:text-gray-400'}`}
                                             >
                                                 <Check size={16} strokeWidth={3} />
                                             </button>

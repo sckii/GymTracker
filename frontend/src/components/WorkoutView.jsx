@@ -41,11 +41,11 @@ export default function WorkoutView({ workout, setWorkouts, isReadOnly }) {
     };
 
     return (
-        <div className="flex flex-col h-full">
+        <div className="flex flex-col h-full bg-brand-gray">
             <div className="px-6 pt-6">
                 <input
                     disabled={isReadOnly}
-                    className={`text-xl font-bold mb-2 bg-transparent border-none outline-none text-gray-800 placeholder-gray-300 w-full ${isReadOnly ? 'text-gray-600' : ''}`}
+                    className={`text-xl font-bold mb-2 bg-transparent border-none outline-none text-gray-100 placeholder-gray-600 w-full ${isReadOnly ? 'text-gray-500' : ''}`}
                     value={workout.name}
                     onChange={(e) => updateWorkoutName(e.target.value)}
                     placeholder="Workout Name"
@@ -66,9 +66,9 @@ export default function WorkoutView({ workout, setWorkouts, isReadOnly }) {
                 {!isReadOnly && (
                     <button
                         onClick={addExercise}
-                        className="w-full py-4 border-2 border-dashed border-gray-300 rounded-xl text-gray-400 font-medium hover:border-gray-400 hover:text-gray-500 transition-colors flex items-center justify-center gap-2 group"
+                        className="w-full py-4 border-2 border-dashed border-brand-border rounded-xl text-gray-500 font-medium hover:border-brand-lime hover:text-brand-lime transition-colors flex items-center justify-center gap-2 group"
                     >
-                        <div className="bg-gray-100 p-1 rounded-full group-hover:bg-gray-200 transition-colors">
+                        <div className="bg-brand-light-gray p-1 rounded-full group-hover:bg-brand-lime group-hover:text-black transition-colors">
                             <Plus size={20} />
                         </div>
                         Add Exercise

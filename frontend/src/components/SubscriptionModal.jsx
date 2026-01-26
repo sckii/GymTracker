@@ -8,7 +8,7 @@ export default function SubscriptionModal({ isOpen, onClose, currentPlanId, onUp
     const plans = Object.values(SUBSCRIPTION_PLANS);
 
     return (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
             <style>{`
                 .custom-scrollbar::-webkit-scrollbar {
                     width: 0px;
@@ -17,18 +17,18 @@ export default function SubscriptionModal({ isOpen, onClose, currentPlanId, onUp
                     background: transparent;
                 }
                 .custom-scrollbar::-webkit-scrollbar-thumb {
-                    background-color: #E5E7EB;
+                    background-color: #3f3f46;
                     border-radius: 20px;
                 }
                 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
                     background-color: #B6F500;
                 }
             `}</style>
-            <div className="bg-white rounded-3xl w-full max-w-4xl max-h-[70vh] overflow-y-auto custom-scrollbar shadow-2xl animate-slide-up flex flex-col md:flex-row relative">
+            <div className="bg-brand-gray rounded-3xl w-full max-w-4xl max-h-[70vh] overflow-y-auto custom-scrollbar shadow-2xl animate-slide-up flex flex-col md:flex-row relative border border-brand-border">
 
                 <button
                     onClick={onClose}
-                    className="absolute top-4 right-4 p-2 bg-gray-100 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-200 z-10 transition-colors"
+                    className="absolute top-4 right-4 p-2 bg-brand-light-gray rounded-full text-gray-400 hover:text-white hover:bg-brand-border z-10 transition-colors"
                 >
                     <X size={20} />
                 </button>
@@ -40,42 +40,42 @@ export default function SubscriptionModal({ isOpen, onClose, currentPlanId, onUp
                     return (
                         <div
                             key={plan.id}
-                            className={`flex-1 p-8 flex flex-col items-center border-b md:border-b-0 md:border-r last:border-0 border-gray-100 relative ${isPro ? 'bg-gradient-to-b from-gray-900 via-gray-800 to-black text-white' : ''}`}
+                            className={`flex-1 p-8 flex flex-col items-center border-b md:border-b-0 md:border-r last:border-0 border-brand-border relative ${isPro ? 'bg-gradient-to-b from-brand-light-gray via-brand-gray to-black text-white' : 'text-gray-100'}`}
                         >
                             {/* ... existing plan content ... */}
                             {isPro && (
-                                <div className="absolute top-0 transform -translate-y-1/2 bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs font-bold px-4 py-1 rounded-full shadow-lg flex items-center gap-1">
+                                <div className="absolute top-0 transform -translate-y-1/2 bg-gradient-to-r from-brand-lime to-green-500 text-black text-xs font-bold px-4 py-1 rounded-full shadow-lg flex items-center gap-1">
                                     <Star size={12} fill="currentColor" /> MOST POPULAR
                                 </div>
                             )}
 
-                            <h3 className={`text-2xl font-bold mb-2 ${!isPro && 'text-gray-800'}`}>{plan.name}</h3>
-                            <div className="text-3xl font-extrabold mb-6">
+                            <h3 className={`text-2xl font-bold mb-2 ${!isPro && 'text-gray-100'}`}>{plan.name}</h3>
+                            <div className="text-3xl font-extrabold mb-6 text-brand-lime">
                                 {plan.price}
                             </div>
 
                             <div className="flex-1 space-y-4 w-full mb-8">
                                 <div className="flex items-center gap-3">
-                                    <div className={`p-1 rounded-full ${isPro ? 'bg-green-500/20 text-green-400' : 'bg-green-100 text-green-600'}`}>
+                                    <div className={`p-1 rounded-full ${isPro ? 'bg-brand-lime/20 text-brand-lime' : 'bg-brand-light-gray text-gray-400'}`}>
                                         <Check size={14} strokeWidth={3} />
                                     </div>
-                                    <span className={`text-sm ${!isPro ? 'text-gray-600' : 'text-gray-300'}`}>
+                                    <span className={`text-sm ${!isPro ? 'text-gray-400' : 'text-gray-300'}`}>
                                         {plan.maxPlans === Infinity ? 'Unlimited' : plan.maxPlans} Plans
                                     </span>
                                 </div>
                                 <div className="flex items-center gap-3">
-                                    <div className={`p-1 rounded-full ${isPro ? 'bg-green-500/20 text-green-400' : 'bg-green-100 text-green-600'}`}>
+                                    <div className={`p-1 rounded-full ${isPro ? 'bg-brand-lime/20 text-brand-lime' : 'bg-brand-light-gray text-gray-400'}`}>
                                         <Check size={14} strokeWidth={3} />
                                     </div>
-                                    <span className={`text-sm ${!isPro ? 'text-gray-600' : 'text-gray-300'}`}>
+                                    <span className={`text-sm ${!isPro ? 'text-gray-400' : 'text-gray-300'}`}>
                                         {plan.maxLogs === Infinity ? 'Unlimited' : plan.maxLogs} Workout Logs
                                     </span>
                                 </div>
                                 <div className="flex items-center gap-3">
-                                    <div className={`p-1 rounded-full ${isPro ? 'bg-green-500/20 text-green-400' : 'bg-green-100 text-green-600'}`}>
+                                    <div className={`p-1 rounded-full ${isPro ? 'bg-brand-lime/20 text-brand-lime' : 'bg-brand-light-gray text-gray-400'}`}>
                                         <Check size={14} strokeWidth={3} />
                                     </div>
-                                    <span className={`text-sm ${!isPro ? 'text-gray-600' : 'text-gray-300'}`}>
+                                    <span className={`text-sm ${!isPro ? 'text-gray-400' : 'text-gray-300'}`}>
                                         Advanced Stats
                                     </span>
                                 </div>
@@ -94,10 +94,10 @@ export default function SubscriptionModal({ isOpen, onClose, currentPlanId, onUp
                                 }}
                                 disabled={isCurrent}
                                 className={`w-full py-3 rounded-xl font-bold transition-transform active:scale-95 ${isCurrent
-                                    ? 'bg-gray-100 text-gray-400 cursor-default'
+                                    ? 'bg-brand-light-gray text-gray-500 cursor-default'
                                     : isPro
-                                        ? 'bg-[#B6F500] text-black hover:bg-[#a4dd00] shadow-lg shadow-[#B6F500]/20'
-                                        : 'bg-gray-900 text-white hover:bg-black'
+                                        ? 'bg-brand-lime text-black hover:bg-brand-lime-mid shadow-lg shadow-brand-lime/20'
+                                        : 'bg-white text-black hover:bg-gray-100'
                                     }`}
                             >
                                 {isCurrent ? 'Current Plan' : (plan.id === 'free' && currentPlanId !== 'free' ? 'Downgrade to Free' : `Upgrade to ${plan.name}`)}
@@ -110,16 +110,16 @@ export default function SubscriptionModal({ isOpen, onClose, currentPlanId, onUp
             {/* Extended Modal Footer for Management if Paid */}
             {currentPlanId !== 'free' && (
                 <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-4 z-50 pointer-events-none">
-                    <div className="bg-white/90 backdrop-blur-md p-2 rounded-2xl shadow-xl flex gap-3 pointer-events-auto border border-gray-200">
+                    <div className="bg-brand-gray/90 backdrop-blur-md p-2 rounded-2xl shadow-xl flex gap-3 pointer-events-auto border border-brand-border">
                         <button
                             onClick={onManage}
-                            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-xl text-sm font-semibold transition-colors"
+                            className="px-4 py-2 bg-brand-light-gray hover:bg-brand-border text-gray-200 rounded-xl text-sm font-semibold transition-colors"
                         >
                             Manage Subscription
                         </button>
                         <button
                             onClick={onCancel}
-                            className="px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl text-sm font-semibold transition-colors"
+                            className="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-xl text-sm font-semibold transition-colors"
                         >
                             Cancel Subscription
                         </button>

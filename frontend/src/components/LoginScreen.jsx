@@ -25,29 +25,29 @@ export default function LoginScreen() {
         <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
             {/* Background decorations matching App theme */}
             <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
-                <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-[#FFFADC] rounded-full mix-blend-multiply filter blur-3xl opacity-60 animate-blob"></div>
-                <div className="absolute top-[-10%] right-[-10%] w-96 h-96 bg-[#B6F500]/40 rounded-full mix-blend-multiply filter blur-3xl opacity-60 animate-blob animation-delay-2000"></div>
-                <div className="absolute bottom-[-20%] left-[20%] w-96 h-96 bg-[#A4DD00]/30 rounded-full mix-blend-multiply filter blur-3xl opacity-60 animate-blob animation-delay-4000"></div>
+                <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-brand-lime rounded-full mix-blend-screen filter blur-[60px] opacity-20 animate-blob"></div>
+                <div className="absolute top-[-10%] right-[-10%] w-96 h-96 bg-purple-500/20 rounded-full mix-blend-screen filter blur-[60px] opacity-60 animate-blob animation-delay-2000"></div>
+                <div className="absolute bottom-[-20%] left-[20%] w-96 h-96 bg-brand-lime-mid/20 rounded-full mix-blend-screen filter blur-[60px] opacity-40 animate-blob animation-delay-4000"></div>
             </div>
 
-            <div className="w-full max-w-md  backdrop-blur-x2  p-8 border border-white/20 text-center relative z-10">
+            <div className="w-full max-w-md bg-brand-gray/50 backdrop-blur-md p-8 rounded-3xl text-center relative z-10 shadow-2xl">
                 <div className="mb-10 text-center">
                     <div className="inline-block relative">
-                        <h1 className="text-4xl font-black italic tracking-tighter text-gray-900 drop-shadow-sm py-2 px-1 relative z-10">
+                        <h1 className="text-4xl font-black italic tracking-tighter text-white drop-shadow-sm py-2 px-1 relative z-10">
                             GYM
-                            <span className="text-[#98CD00]">TRACKER</span>
+                            <span className="text-brand-lime">TRACKER</span>
                         </h1>
                     </div>
-                    <p className="text-gray-500 font-medium mt-3">Sign in to track your workouts</p>
+                    <p className="text-gray-400 font-medium mt-3">Sign in to track your workouts</p>
                 </div>
 
                 <button
                     onClick={handleLogin}
                     disabled={loading}
-                    className="w-full flex items-center justify-center gap-3 bg-white hover:bg-gray-50 text-gray-800 font-bold py-4 px-6 rounded-xl border-2 border-gray-100 hover:border-[#B6F500] shadow-sm transition-all active:scale-[0.98] group"
+                    className="w-full flex items-center justify-center gap-3 bg-white hover:bg-gray-100 text-gray-800 font-bold py-4 px-6 rounded-xl border border-transparent hover:border-brand-lime shadow-lg transition-all active:scale-[0.98] group"
                 >
                     {loading ? (
-                        <Loader2 className="w-5 h-5 animate-spin text-[#98CD00]" />
+                        <Loader2 className="w-5 h-5 animate-spin text-black" />
                     ) : (
                         <svg className="w-5 h-5" viewBox="0 0 24 24">
                             <path

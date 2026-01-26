@@ -29,7 +29,7 @@ export default function NotificationToast({ message, type = 'info', onClose }) {
     };
 
     return (
-        <div className={`fixed bottom-6 right-6 flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg border ${borderColors[type]} ${bgColors[type]} z-50 animate-in slide-in-from-right-10 fade-in duration-300`}>
+        <div className={`fixed bottom-6 right-0 flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg border ${borderColors[type]} ${bgColors[type]} z-50 animate-in slide-in-from-right-10 fade-in duration-300`}>
             {icons[type]}
             <p className="text-sm font-medium text-gray-700 pr-2">{message}</p>
             <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">

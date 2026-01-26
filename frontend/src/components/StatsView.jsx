@@ -106,9 +106,11 @@ export default function StatsView({ logs, onBack }) {
                 {
                     label: 'Total Volume (kg)',
                     data: Object.values(volumeByDate),
-                    borderColor: 'rgba(59, 130, 246, 1)',
-                    backgroundColor: 'rgba(59, 130, 246, 0.5)',
-                    tension: 0.3
+                    borderColor: '#B6F500',
+                    backgroundColor: 'rgba(182, 245, 0, 0.2)', // brand-lime with opacity
+                    tension: 0.3,
+                    pointBackgroundColor: '#B6F500',
+                    pointBorderColor: '#000',
                 }
             ]
         };
@@ -117,30 +119,47 @@ export default function StatsView({ logs, onBack }) {
     const chartOptions = {
         responsive: true,
         plugins: {
-            legend: { position: 'top' },
-            title: { display: true, text: 'Training Progress' },
+            legend: {
+                position: 'top',
+                labels: { color: '#e4e4e7' } // text-gray-200
+            },
+            title: {
+                display: true,
+                text: 'Training Progress',
+                color: '#e4e4e7'
+            },
         },
+        scales: {
+            y: {
+                grid: { color: '#3f3f46' }, // brand-border
+                ticks: { color: '#a1a1aa' } // text-gray-400
+            },
+            x: {
+                grid: { color: '#3f3f46' },
+                ticks: { color: '#a1a1aa' }
+            }
+        }
     };
 
     return (
-        <div className="flex flex-col h-full bg-gray-50">
-            <div className="bg-white p-6 border-b border-gray-100 flex items-center justify-between">
+        <div className="flex flex-col h-full bg-brand-gray">
+            <div className="bg-brand-light-gray p-6 border-b border-brand-border flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                    <button onClick={onBack} className="p-2 hover:bg-gray-100 rounded-full text-gray-500">
+                    <button onClick={onBack} className="p-2 hover:bg-brand-border rounded-full text-gray-400 hover:text-white transition-colors">
                         <ArrowLeft size={24} />
                     </button>
-                    <h2 className="text-2xl font-bold text-gray-800">History & Stats</h2>
+                    <h2 className="text-2xl font-bold text-gray-100">History & Stats</h2>
                 </div>
-                <div className="flex bg-gray-100 p-1 rounded-lg">
+                <div className="flex bg-brand-gray p-1 rounded-lg border border-brand-border">
                     <button
                         onClick={() => setActiveTab('table')}
-                        className={`p-2 rounded-md flex items-center gap-2 text-sm font-bold transition-all ${activeTab === 'table' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                        className={`p-2 rounded-md flex items-center gap-2 text-sm font-bold transition-all ${activeTab === 'table' ? 'bg-brand-light-gray text-brand-lime shadow-sm' : 'text-gray-400 hover:text-white'}`}
                     >
                         <TableIcon size={16} /> Table
                     </button>
                     <button
                         onClick={() => setActiveTab('charts')}
-                        className={`p-2 rounded-md flex items-center gap-2 text-sm font-bold transition-all ${activeTab === 'charts' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                        className={`p-2 rounded-md flex items-center gap-2 text-sm font-bold transition-all ${activeTab === 'charts' ? 'bg-brand-light-gray text-brand-lime shadow-sm' : 'text-gray-400 hover:text-white'}`}
                     >
                         <BarChart2 size={16} /> Charts
                     </button>
@@ -149,7 +168,7 @@ export default function StatsView({ logs, onBack }) {
 
             <div className="flex-1 p-6 overflow-hidden">
                 {activeTab === 'table' ? (
-                    <div className="h-full w-full ag-theme-alpine">
+                    <div className="h-full w-full ag-theme-alpine-dark">
                         {/* AG Grid requires a fixed height container usually */}
                         <div style={{ height: '100%', width: '100%' }}>
                             <AgGridReact
@@ -161,7 +180,7 @@ export default function StatsView({ logs, onBack }) {
                         </div>
                     </div>
                 ) : (
-                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 h-full flex items-center justify-center">
+                    <div className="bg-brand-light-gray p-6 rounded-2xl shadow-sm border border-brand-border h-full flex items-center justify-center">
                         <div className="w-full h-full max-h-[500px]">
                             <Line options={chartOptions} data={chartData} />
                         </div>

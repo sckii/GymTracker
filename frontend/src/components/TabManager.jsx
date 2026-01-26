@@ -40,20 +40,20 @@ export default function TabManager({ workouts, activeTab, setActiveTab, setWorko
     };
 
     return (
-        <div className="flex items-center bg-gray-100 p-2 gap-1 overflow-x-auto border-b border-gray-200">
+        <div className="flex items-center bg-brand-light-gray p-2 gap-1 overflow-x-auto border-b border-brand-border">
             {/* Fixed Plan Info Tab */}
             <div
                 onClick={() => setActiveTab('plan-info')}
                 className={`
             flex items-center gap-2 px-4 py-2 rounded-t-lg cursor-pointer text-sm font-medium transition-colors select-none shrink-0
-            ${activeTab === 'plan-info' ? 'bg-white text-blue-600 shadow-sm border-t-2 border-blue-500' : 'hover:bg-gray-200 text-gray-500'}
+            ${activeTab === 'plan-info' ? 'bg-brand-gray text-brand-lime shadow-sm border-t-2 border-brand-lime' : 'hover:bg-brand-border text-gray-500'}
           `}
             >
                 <Info size={16} />
                 <span>Plan Details</span>
             </div>
 
-            <div className="w-[1px] h-6 bg-gray-300 mx-1 shrink-0"></div>
+            <div className="w-[1px] h-6 bg-brand-border mx-1 shrink-0"></div>
 
             {workouts.map(workout => (
                 <div
@@ -62,7 +62,7 @@ export default function TabManager({ workouts, activeTab, setActiveTab, setWorko
                     onDoubleClick={(e) => startEditing(e, workout)}
                     className={`
             group flex items-center gap-2 px-4 py-2 rounded-t-lg cursor-pointer text-sm font-medium transition-colors select-none shrink-0
-            ${activeTab === workout.id ? 'bg-white text-gray-800 shadow-sm' : 'hover:bg-gray-200 text-gray-600'}
+            ${activeTab === workout.id ? 'bg-brand-gray text-gray-100 shadow-sm' : 'hover:bg-brand-border text-gray-500'}
           `}
                 >
                     {editingId === workout.id ? (
@@ -72,7 +72,7 @@ export default function TabManager({ workouts, activeTab, setActiveTab, setWorko
                             onChange={(e) => setEditName(e.target.value)}
                             onBlur={() => saveEdit(workout.id)}
                             onKeyDown={(e) => handleKeyDown(e, workout.id)}
-                            className="w-24 bg-transparent outline-none border-b border-blue-500"
+                            className="w-24 bg-transparent outline-none border-b border-brand-lime text-white"
                             onClick={(e) => e.stopPropagation()}
                         />
                     ) : (
@@ -82,7 +82,7 @@ export default function TabManager({ workouts, activeTab, setActiveTab, setWorko
                     {!isReadOnly && (
                         <button
                             onClick={(e) => removeTab(e, workout.id)}
-                            className="opacity-0 group-hover:opacity-100 hover:bg-gray-200 p-0.5 rounded-full transition-all"
+                            className="opacity-0 group-hover:opacity-100 hover:bg-brand-border p-0.5 rounded-full transition-all text-gray-400 hover:text-white"
                         >
                             <X size={14} />
                         </button>
@@ -92,7 +92,7 @@ export default function TabManager({ workouts, activeTab, setActiveTab, setWorko
             {!isReadOnly && (
                 <button
                     onClick={addTab}
-                    className="p-2 hover:bg-gray-200 rounded-lg text-gray-500 transition-colors"
+                    className="p-2 hover:bg-brand-border rounded-lg text-gray-500 hover:text-white transition-colors"
                 >
                     <Plus size={18} />
                 </button>

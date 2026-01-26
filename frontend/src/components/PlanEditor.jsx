@@ -17,23 +17,23 @@ export default function PlanEditor({ plan, updatePlan, onBack }) {
     const isReadOnly = plan.isActive;
 
     return (
-        <div className="flex flex-col h-full bg-gray-50">
+        <div className="flex flex-col h-full bg-brand-gray">
             {/* Header */}
-            <div className="bg-white p-4 flex items-center justify-between border-b border-gray-100">
+            <div className="bg-brand-light-gray p-4 flex items-center justify-between border-b border-brand-border">
                 <div className="flex items-center gap-3">
                     <button
                         onClick={onBack}
-                        className="p-2 hover:bg-gray-100 rounded-full text-gray-500 transition-colors"
+                        className="p-2 hover:bg-brand-border rounded-full text-gray-400 hover:text-white transition-colors"
                     >
                         <ArrowLeft size={20} />
                     </button>
-                    <h2 className="text-lg font-bold text-gray-800 truncate max-w-[200px]">{plan.name || 'New Plan'}</h2>
-                    {isReadOnly && <span className="bg-blue-100 text-blue-600 px-2 py-0.5 rounded text-xs font-bold uppercase">Active</span>}
+                    <h2 className="text-lg font-bold text-gray-100 truncate max-w-[200px]">{plan.name || 'New Plan'}</h2>
+                    {isReadOnly && <span className="bg-brand-lime/20 text-brand-lime px-2 py-0.5 rounded text-xs font-bold uppercase">Active</span>}
                 </div>
             </div>
 
             {/* Tabs & Content */}
-            <div className="flex-1 flex flex-col bg-white overflow-hidden">
+            <div className="flex-1 flex flex-col bg-brand-light-gray overflow-hidden">
                 <TabManager
                     workouts={plan.workouts}
                     activeTab={activeTab}
@@ -41,13 +41,13 @@ export default function PlanEditor({ plan, updatePlan, onBack }) {
                     setWorkouts={setWorkouts}
                     isReadOnly={isReadOnly}
                 />
-                <div className="flex-1 bg-gray-50 overflow-hidden">
+                <div className="flex-1 bg-brand-gray overflow-hidden">
                     {activeTab === 'plan-info' ? (
                         <PlanInfoView plan={plan} updatePlan={updatePlan} />
                     ) : activeWorkout ? (
                         <WorkoutView workout={activeWorkout} setWorkouts={setWorkouts} isReadOnly={isReadOnly} />
                     ) : (
-                        <div className="flex flex-col items-center justify-center h-full text-gray-400 gap-2">
+                        <div className="flex flex-col items-center justify-center h-full text-gray-500 gap-2">
                             <span>No workout selected</span>
                         </div>
                     )}

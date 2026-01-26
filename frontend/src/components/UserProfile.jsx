@@ -27,7 +27,7 @@ export default function UserProfile({ user, currentPlan, onUpgrade, onManage, on
 
     return (
         <>
-            <div className="absolute top-4 right-4 z-50 flex items-center gap-3 bg-white backdrop-blur-md py-1.5 px-3 rounded-full border border-white/40 shadow-sm transition-all  fixed top-0">
+            <div className="absolute top-4 right-4 z-50 flex items-center gap-3 bg-brand-light-gray/80 backdrop-blur-md py-1.5 px-3 rounded-full border border-brand-border shadow-sm transition-all fixed top-0">
 
                 {/* Plan Badge - Clickable */}
                 <button
@@ -43,23 +43,23 @@ export default function UserProfile({ user, currentPlan, onUpgrade, onManage, on
                         <img
                             src={avatarUrl}
                             alt="Profile"
-                            className="w-8 h-8 rounded-full border-2 border-white shadow-sm object-cover"
+                            className="w-8 h-8 rounded-full border-2 border-brand-gray shadow-sm object-cover"
                         />
                     ) : (
-                        <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center border-2 border-white shadow-sm text-purple-600">
+                        <div className="w-8 h-8 rounded-full bg-brand-gray flex items-center justify-center border-2 border-brand-border shadow-sm text-brand-lime">
                             <User size={16} />
                         </div>
                     )}
-                    <span className="text-sm font-semibold text-gray-700 hidden sm:block">
+                    <span className="text-sm font-semibold text-gray-200 hidden sm:block">
                         {displayName}
                     </span>
                 </div>
 
-                <div className="h-4 w-px bg-gray-400/30"></div>
+                <div className="h-4 w-px bg-gray-600"></div>
 
                 <button
                     onClick={handleLogout}
-                    className="text-gray-500 hover:text-red-500 transition-colors p-1 rounded-full hover:bg-white/50"
+                    className="text-gray-400 hover:text-red-500 transition-colors p-1 rounded-full hover:bg-white/10"
                     title="Sign Out"
                 >
                     <LogOut size={16} />
