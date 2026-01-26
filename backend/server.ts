@@ -37,6 +37,12 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req: Requ
     const signature = req.headers['stripe-signature'];
     const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
+    console.log(`Webhook Debug - Signature present: ${!!signature}`);
+    console.log(`Webhook Debug - Secret present: ${!!webhookSecret}`);
+    if (webhookSecret) {
+        console.log(`Webhook Debug - Secret (masked): ${webhookSecret.substring(0, 5)}...`);
+    }
+
     if (!webhookSecret || !signature) {
         return res.status(400).send('Missing secret or signature');
     }
