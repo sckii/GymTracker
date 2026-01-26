@@ -146,6 +146,56 @@ app.post('/create-checkout-session', async (req: Request, res: Response) => {
 });
 
 // --- CREATE PORTAL SESSION ---
+let cachedPortalConfigId: string | null = null;
+
+async function getOrCreatePortalConfig() {
+    if (cachedPortalConfigId) return cachedPortalConfigId;
+
+    // 1. Search for existing config
+    const configs = await stripe.billingPortal.configurations.list({ limit: 10 });
+    const existing = configs.data.find(c => c.metadata?.app === 'gym-tracker-v1');
+
+    if (existing) {
+        cachedPortalConfigId = existing.id;
+        return existing.id;
+    }
+
+    // 2. Fetch active products to allow updates to
+    const products = await stripe.products.list({ active: true, limit: 100 });
+    const subscriptionProducts = products.data.map(p => ({
+        product: p.id,
+        prices: [] // Empty array implies all prices for this product are allowed
+    }));
+
+    // 3. Create new config
+    const newConfig = await stripe.billingPortal.configurations.create({
+        business_profile: {
+            headline: 'Manage your Gym Subscription',
+        },
+        features: {
+            customer_update: {
+                enabled: true,
+                allowed_updates: ['email', 'address', 'phone'],
+            },
+            invoice_history: { enabled: true },
+            payment_method_update: { enabled: true },
+            subscription_cancel: { enabled: true },
+            subscription_update: {
+                enabled: true,
+                default_allowed_updates: [],
+                proration_behavior: 'always_invoice',
+                products: subscriptionProducts
+            }
+        },
+        metadata: {
+            app: 'gym-tracker-v1'
+        }
+    });
+
+    cachedPortalConfigId = newConfig.id;
+    return newConfig.id;
+}
+
 app.post('/create-portal-session', async (req: Request, res: Response) => {
     try {
         const { returnUrl } = req.body;
@@ -162,9 +212,12 @@ app.post('/create-portal-session', async (req: Request, res: Response) => {
             return res.status(400).json({ error: 'No Stripe Customer found' });
         }
 
+        const configId = await getOrCreatePortalConfig();
+
         const session = await stripe.billingPortal.sessions.create({
             customer: profile.stripe_customer_id,
             return_url: returnUrl,
+            configuration: configId
         });
 
         res.json({ url: session.url });
