@@ -192,7 +192,7 @@ async function getOrCreatePortalConfig() {
             subscription_cancel: { enabled: true },
             subscription_update: {
                 enabled: true,
-                default_allowed_updates: [],
+                default_allowed_updates: ['price'],
                 proration_behavior: 'always_invoice',
                 products: subscriptionProducts
             }
