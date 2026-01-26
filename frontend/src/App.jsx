@@ -19,6 +19,8 @@ import LoadingScreen from './components/LoadingScreen';
 
 import { SUBSCRIPTION_PLANS, DEFAULT_PLAN } from './config/subscriptionPlans';
 
+const BASE_API_URL = 'http://gymtracker.api.sckii.com';
+
 function App() {
   const [session, setSession] = useState(null);
   const [view, setView] = useState('home'); // 'home', 'plan-list', 'plan-editor', 'start-workout', 'workout-session', 'stats'
@@ -86,7 +88,7 @@ function App() {
         throw new Error('No active session token');
       }
 
-      const response = await fetch('http://localhost:4242/create-checkout-session', {
+      const response = await fetch(BASE_API_URL + '/create-checkout-session', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -125,7 +127,7 @@ function App() {
       const { data: { session: currentSession } } = await supabase.auth.getSession();
       if (!currentSession?.access_token) throw new Error('No active session');
 
-      const response = await fetch('http://localhost:4242/create-portal-session', {
+      const response = await fetch(BASE_API_URL + '/create-portal-session', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -163,7 +165,7 @@ function App() {
           const { data: { session: currentSession } } = await supabase.auth.getSession();
           if (!currentSession?.access_token) throw new Error('No active session');
 
-          const response = await fetch('http://localhost:4242/cancel-subscription', {
+          const response = await fetch(BASE_API_URL + '/cancel-subscription', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
