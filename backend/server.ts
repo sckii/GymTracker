@@ -167,15 +167,25 @@ async function getOrCreatePortalConfig() {
     const subscriptionProducts = products.data
         .map(p => {
             const productPrices = prices.data
-                .filter(price => (typeof price.product === 'string' ? price.product : price.product.id) === p.id)
-                .map(price => price.id);
+                .filter(price => (typeof price.product === 'string' ? price.product : price.product.id) === p.id);
+
+            // Deduplicate by interval (take the most recent one)
+            const uniqueIntervalPrices = new Map<string, Stripe.Price>();
+            for (const price of productPrices) {
+                if (price.recurring?.interval) {
+                    const existing = uniqueIntervalPrices.get(price.recurring.interval);
+                    if (!existing || price.created > existing.created) {
+                        uniqueIntervalPrices.set(price.recurring.interval, price);
+                    }
+                }
+            }
 
             return {
                 product: p.id,
-                prices: productPrices
+                prices: Array.from(uniqueIntervalPrices.values()).map(price => price.id)
             };
         })
-        .filter(sp => sp.prices.length > 0); // Only include products with active prices
+        .filter(sp => sp.prices.length > 0);
 
     // 3. Create new config
     const newConfig = await stripe.billingPortal.configurations.create({
