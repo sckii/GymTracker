@@ -69,6 +69,12 @@ function App() {
 
     if (!plan) return;
 
+    // If switching between paid plans (e.g. Basic -> Pro), go to portal
+    if (userPlan.id !== 'free' && planId !== 'free' && userPlan.id !== planId) {
+      handleManageSubscription();
+      return;
+    }
+
     if (plan.id === 'free') {
       showNotification('To cancel your subscription, please manage it in the Stripe Portal (Coming Soon).', 'info');
       return;
@@ -141,7 +147,6 @@ function App() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Network response was not ok');
 
-      if (error) throw error;
       if (data?.url) {
         window.location.href = data.url;
       } else {

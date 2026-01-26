@@ -27,7 +27,7 @@ export default function UserProfile({ user, currentPlan, onUpgrade, onManage, on
 
     return (
         <>
-            <div className="absolute top-4 right-4 z-50 flex items-center gap-3 bg-white backdrop-blur-md py-1.5 px-3 rounded-full border border-white/40 shadow-sm transition-all hover:bg-white/50 fixed top-0">
+            <div className="absolute top-4 right-4 z-50 flex items-center gap-3 bg-white backdrop-blur-md py-1.5 px-3 rounded-full border border-white/40 shadow-sm transition-all  fixed top-0">
 
                 {/* Plan Badge - Clickable */}
                 <button

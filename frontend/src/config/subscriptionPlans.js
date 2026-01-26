@@ -14,7 +14,7 @@ export const SUBSCRIPTION_PLANS = {
         maxPlans: 10,
         color: 'blue',
         price: '$4.99/mo',
-        priceId: 'price_1Sso0jDLLX3WOCmihqIcvXSG'
+        priceId: 'price_1SsrAfDLLX3WOCmi9MzxP0dZ'
     },
     PRO: {
         id: 'pro',
