@@ -160,12 +160,22 @@ async function getOrCreatePortalConfig() {
         return existing.id;
     }
 
-    // 2. Fetch active products to allow updates to
+    // 2. Fetch active products AND prices to allow updates to
     const products = await stripe.products.list({ active: true, limit: 100 });
-    const subscriptionProducts = products.data.map(p => ({
-        product: p.id,
-        prices: [] // Empty array implies all prices for this product are allowed
-    }));
+    const prices = await stripe.prices.list({ active: true, limit: 100 });
+
+    const subscriptionProducts = products.data
+        .map(p => {
+            const productPrices = prices.data
+                .filter(price => (typeof price.product === 'string' ? price.product : price.product.id) === p.id)
+                .map(price => price.id);
+
+            return {
+                product: p.id,
+                prices: productPrices
+            };
+        })
+        .filter(sp => sp.prices.length > 0); // Only include products with active prices
 
     // 3. Create new config
     const newConfig = await stripe.billingPortal.configurations.create({
