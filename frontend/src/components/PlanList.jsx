@@ -392,7 +392,7 @@ export default function PlanList({ plans, setView, setSelectedPlanId, createPlan
                         >
                             <h3 className="text-lg font-bold text-gray-100">{plan.name || 'Untitled Plan'}</h3>
                             <p className="text-sm text-gray-400">{plan.description || 'No description'}</p>
-                            {plan.isActive && <span className="inline-block mt-1 text-xs font-bold text-brand-lime bg-brand-lime/10 px-2 py-0.5 rounded">ACTIVE</span>}
+                            {plan.isActive && <span className="inline-block mt-1 text-xs font-bold text-brand-primary bg-brand-primary/10 px-2 py-0.5 rounded">ACTIVE</span>}
                         </div>
                         <div className="flex items-center gap-2">
                             <button
@@ -446,10 +446,10 @@ export default function PlanList({ plans, setView, setSelectedPlanId, createPlan
                 </button>
                 <button
                     onClick={createPlan}
-                    className="flex-[2] py-4 bg-brand-lime text-black rounded-xl font-bold hover:bg-brand-lime-mid transition-colors flex items-center justify-center gap-2"
+                    className="w-full bg-brand-primary hover:bg-brand-primary-dark text-brand-dark font-bold py-4 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-brand-primary/20 transition-all active:scale-[0.98] group"
                 >
-                    <Plus size={16} />
-                    New Plan
+                    <Plus size={24} className="group-hover:rotate-90 transition-transform duration-300" />
+                    CREATE NEW PLAN
                 </button>
             </div>
 
@@ -539,7 +539,7 @@ export default function PlanList({ plans, setView, setSelectedPlanId, createPlan
                                     </div>
                                     <button
                                         onClick={copyToClipboard}
-                                        className={`w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all ${hasCopied ? 'bg-green-500 text-white' : 'bg-brand-lime text-black hover:bg-brand-lime-mid'}`}
+                                        className={`w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all ${hasCopied ? 'bg-green-500 text-white' : 'bg-brand-primary text-black hover:bg-brand-primary-mid'}`}
                                     >
                                         {hasCopied ? <Check size={18} /> : <Copy size={18} />}
                                         {hasCopied ? 'Copied!' : 'Copy Link'}
@@ -552,14 +552,14 @@ export default function PlanList({ plans, setView, setSelectedPlanId, createPlan
                                 <div className="flex flex-col gap-4">
                                     <p className="text-sm text-gray-400">Paste the shared link below:</p>
                                     <textarea
-                                        className="w-full p-3 bg-brand-light-gray border border-brand-border rounded-xl focus:ring-2 focus:ring-brand-lime outline-none text-sm min-h-[100px] text-gray-200 placeholder-gray-600"
+                                        className="w-full p-3 bg-brand-light-gray border border-brand-border rounded-xl focus:ring-2 focus:ring-brand-primary outline-none text-sm min-h-[100px] text-gray-200 placeholder-gray-600"
                                         placeholder="https://..."
                                         value={importLinkInput}
                                         onChange={(e) => setImportLinkInput(e.target.value)}
                                     />
                                     <button
                                         onClick={handleImportLinkSubmit}
-                                        className="w-full py-3 bg-brand-lime text-black rounded-xl font-bold hover:bg-brand-lime-mid transition-colors"
+                                        className="w-full py-3 bg-brand-primary text-black rounded-xl font-bold hover:bg-brand-primary-mid transition-colors"
                                     >
                                         Import Plan
                                     </button>

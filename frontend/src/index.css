@@ -2,9 +2,11 @@
 
 @theme {
   --color-brand-cream: #FFFADC;
-  --color-brand-lime: #B6F500;
-  --color-brand-lime-mid: #A4DD00;
-  --color-brand-lime-dark: #98CD00;
+  --color-brand-cream: #FFFADC;
+  --color-brand-primary: #FF204E;
+  --color-brand-primary-dark: #A0153E;
+  --color-brand-secondary: #00224D;
+  --color-brand-secondary-dark: #5D0E41;
   --color-brand-dark: #09090b;
   --color-brand-gray: #18181b;
   --color-brand-light-gray: #27272a;

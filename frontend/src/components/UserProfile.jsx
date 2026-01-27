@@ -17,6 +17,7 @@ export default function UserProfile({ user, currentPlan, onUpgrade, onManage, on
 
     // Split name to get first name if too long, or just use full name
     const displayName = fullName.split(' ')[0];
+    const isPro = currentPlan?.id === 'pro';
 
     // Badge Colors
     const badgeColor = currentPlan?.id === 'pro'
@@ -38,21 +39,25 @@ export default function UserProfile({ user, currentPlan, onUpgrade, onManage, on
                     {currentPlan?.name || 'FREE'}
                 </button>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3">
                     {avatarUrl ? (
                         <img
                             src={avatarUrl}
                             alt="Profile"
-                            className="w-8 h-8 rounded-full border-2 border-brand-gray shadow-sm object-cover"
+                            className="w-10 h-10 rounded-full border-2 border-brand-gray shadow-sm object-cover"
                         />
                     ) : (
-                        <div className="w-8 h-8 rounded-full bg-brand-gray flex items-center justify-center border-2 border-brand-border shadow-sm text-brand-lime">
-                            <User size={16} />
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-primary to-brand-primary-dark flex items-center justify-center text-brand-dark font-bold text-lg shadow-lg shadow-brand-primary/20">
+                            {user.user_metadata.full_name ? user.user_metadata.full_name[0].toUpperCase() : 'U'}
                         </div>
                     )}
-                    <span className="text-sm font-semibold text-gray-200 hidden sm:block">
-                        {displayName}
-                    </span>
+
+                    <div className="hidden sm:block">
+                        <p className="text-xs text-gray-400 font-bold uppercase tracking-wider text-left">Welcome back,</p>
+                        <div className="flex items-center gap-2">
+                            <p className="text-sm font-bold text-white max-w-[150px] truncate">{displayName || 'User'}</p>
+                        </div>
+                    </div>
                 </div>
 
                 <div className="h-4 w-px bg-gray-600"></div>

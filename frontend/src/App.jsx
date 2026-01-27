@@ -564,9 +564,9 @@ function App() {
   return (
     <div className="flex items-center justify-center min-h-screen p-4 relative font-sans">
       <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
-        <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-brand-lime rounded-full mix-blend-screen filter blur-[60px] opacity-20 animate-blob"></div>
-        <div className="absolute top-[-10%] right-[-10%] w-96 h-96 bg-purple-500/20 rounded-full mix-blend-screen filter blur-[60px] opacity-60 animate-blob animation-delay-2000"></div>
-        <div className="absolute bottom-[-20%] left-[20%] w-96 h-96 bg-brand-lime-mid/20 rounded-full mix-blend-screen filter blur-[60px] opacity-40 animate-blob animation-delay-4000"></div>
+        <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-brand-primary rounded-full mix-blend-screen filter blur-[60px] opacity-20 animate-blob"></div>
+        <div className="absolute top-[-10%] right-[-10%] w-96 h-96 bg-brand-secondary/40 rounded-full mix-blend-screen filter blur-[60px] opacity-60 animate-blob animation-delay-2000"></div>
+        <div className="absolute bottom-[-20%] left-[20%] w-96 h-96 bg-brand-primary-dark/20 rounded-full mix-blend-screen filter blur-[60px] opacity-40 animate-blob animation-delay-4000"></div>
       </div>
 
       <UserProfile

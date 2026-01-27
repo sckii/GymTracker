@@ -21,7 +21,7 @@ export default function SubscriptionModal({ isOpen, onClose, currentPlanId, onUp
                     border-radius: 20px;
                 }
                 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-                    background-color: #B6F500;
+                    background-color: #FF204E;
                 }
             `}</style>
             <div className="bg-brand-gray rounded-3xl w-full max-w-4xl max-h-[70vh] overflow-y-auto custom-scrollbar shadow-2xl animate-slide-up flex flex-col md:flex-row relative border border-brand-border">
@@ -44,19 +44,19 @@ export default function SubscriptionModal({ isOpen, onClose, currentPlanId, onUp
                         >
                             {/* ... existing plan content ... */}
                             {isPro && (
-                                <div className="absolute top-0 transform -translate-y-1/2 bg-gradient-to-r from-brand-lime to-green-500 text-black text-xs font-bold px-4 py-1 rounded-full shadow-lg flex items-center gap-1">
+                                <div className="absolute top-0 transform -translate-y-1/2 bg-gradient-to-r from-brand-primary to-rose-500 text-black text-xs font-bold px-4 py-1 rounded-full shadow-lg flex items-center gap-1">
                                     <Star size={12} fill="currentColor" /> MOST POPULAR
                                 </div>
                             )}
 
                             <h3 className={`text-2xl font-bold mb-2 ${!isPro && 'text-gray-100'}`}>{plan.name}</h3>
-                            <div className="text-3xl font-extrabold mb-6 text-brand-lime">
+                            <div className="text-3xl font-extrabold mb-6 text-brand-primary">
                                 {plan.price}
                             </div>
 
                             <div className="flex-1 space-y-4 w-full mb-8">
                                 <div className="flex items-center gap-3">
-                                    <div className={`p-1 rounded-full ${isPro ? 'bg-brand-lime/20 text-brand-lime' : 'bg-brand-light-gray text-gray-400'}`}>
+                                    <div className={`p-1 rounded-full ${isPro ? 'bg-brand-primary/20 text-brand-primary' : 'bg-brand-light-gray text-gray-400'}`}>
                                         <Check size={14} strokeWidth={3} />
                                     </div>
                                     <span className={`text-sm ${!isPro ? 'text-gray-400' : 'text-gray-300'}`}>
@@ -64,7 +64,7 @@ export default function SubscriptionModal({ isOpen, onClose, currentPlanId, onUp
                                     </span>
                                 </div>
                                 <div className="flex items-center gap-3">
-                                    <div className={`p-1 rounded-full ${isPro ? 'bg-brand-lime/20 text-brand-lime' : 'bg-brand-light-gray text-gray-400'}`}>
+                                    <div className={`p-1 rounded-full ${isPro ? 'bg-brand-primary/20 text-brand-primary' : 'bg-brand-light-gray text-gray-400'}`}>
                                         <Check size={14} strokeWidth={3} />
                                     </div>
                                     <span className={`text-sm ${!isPro ? 'text-gray-400' : 'text-gray-300'}`}>
@@ -72,7 +72,7 @@ export default function SubscriptionModal({ isOpen, onClose, currentPlanId, onUp
                                     </span>
                                 </div>
                                 <div className="flex items-center gap-3">
-                                    <div className={`p-1 rounded-full ${isPro ? 'bg-brand-lime/20 text-brand-lime' : 'bg-brand-light-gray text-gray-400'}`}>
+                                    <div className={`p-1 rounded-full ${isPro ? 'bg-brand-primary/20 text-brand-primary' : 'bg-brand-light-gray text-gray-400'}`}>
                                         <Check size={14} strokeWidth={3} />
                                     </div>
                                     <span className={`text-sm ${!isPro ? 'text-gray-400' : 'text-gray-300'}`}>
@@ -96,7 +96,7 @@ export default function SubscriptionModal({ isOpen, onClose, currentPlanId, onUp
                                 className={`w-full py-3 rounded-xl font-bold transition-transform active:scale-95 ${isCurrent
                                     ? 'bg-brand-light-gray text-gray-500 cursor-default'
                                     : isPro
-                                        ? 'bg-brand-lime text-black hover:bg-brand-lime-mid shadow-lg shadow-brand-lime/20'
+                                        ? 'bg-brand-primary text-black hover:bg-brand-primary-mid shadow-lg shadow-brand-primary/20'
                                         : 'bg-white text-black hover:bg-gray-100'
                                     }`}
                             >

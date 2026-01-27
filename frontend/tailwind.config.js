@@ -8,9 +8,11 @@ export default {
     extend: {
       colors: {
         'brand-cream': '#FFFADC',
-        'brand-lime': '#B6F500',
-        'brand-lime-mid': '#A4DD00',
-        'brand-lime-dark': '#98CD00',
+        'brand-cream': '#FFFADC',
+        'brand-primary': '#FF204E',      // Red
+        'brand-primary-dark': '#A0153E', // Deep Red
+        'brand-secondary': '#00224D',    // Navy Blue
+        'brand-secondary-dark': '#5D0E41', // Deep Purple
         'brand-dark': '#09090b',      // Zinc 950
         'brand-gray': '#18181b',      // Zinc 900
         'brand-light-gray': '#27272a', // Zinc 800

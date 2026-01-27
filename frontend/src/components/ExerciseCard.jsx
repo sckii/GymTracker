@@ -77,14 +77,14 @@ export default function ExerciseCard({ exercise, updateExercise, deleteExercise,
                             <div className="relative group/select">
                                 <select
                                     disabled={isReadOnly}
-                                    className="bg-brand-gray rounded-lg p-2 pr-10 font-medium text-gray-300 outline-none focus:ring-2 focus:ring-brand-lime transition-all w-full appearance-none disabled:opacity-50 cursor-pointer border border-transparent hover:border-brand-border/50"
+                                    className="bg-brand-gray rounded-lg p-2 pr-10 font-medium text-gray-300 outline-none focus:ring-2 focus:ring-brand-primary transition-all w-full appearance-none disabled:opacity-50 cursor-pointer border border-transparent hover:border-brand-border/50"
                                     value={currentType}
                                     onChange={(e) => updateExercise(exercise.id, { ...exercise, type: e.target.value, reps: e.target.value === 'Normal' ? '' : [] })}
                                 >
                                     <option value="Normal" className="bg-brand-gray text-gray-300">Normal</option>
                                     <option value="Custom" className="bg-brand-gray text-gray-300">Custom</option>
                                 </select>
-                                <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none group-hover/select:text-brand-lime transition-colors" />
+                                <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none group-hover/select:text-brand-primary transition-colors" />
                             </div>
                         </div>
 
@@ -94,7 +94,7 @@ export default function ExerciseCard({ exercise, updateExercise, deleteExercise,
                                 disabled={isReadOnly}
                                 type="number"
                                 min="0"
-                                className="bg-brand-gray rounded-lg p-2 font-medium text-gray-300 outline-none focus:ring-2 focus:ring-brand-lime transition-all w-full disabled:opacity-50 appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [appearance:textfield] border border-transparent hover:border-brand-border/50"
+                                className="bg-brand-gray rounded-lg p-2 font-medium text-gray-300 outline-none focus:ring-2 focus:ring-brand-primary transition-all w-full disabled:opacity-50 appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [appearance:textfield] border border-transparent hover:border-brand-border/50"
                                 placeholder="0"
                                 value={exercise.sets}
                                 onChange={(e) => {
@@ -109,14 +109,14 @@ export default function ExerciseCard({ exercise, updateExercise, deleteExercise,
                             <div className="relative group/select">
                                 <select
                                     disabled={isReadOnly}
-                                    className="bg-brand-gray rounded-lg p-2 pr-10 font-medium text-gray-300 outline-none focus:ring-2 focus:ring-brand-lime transition-all w-full appearance-none disabled:opacity-50 cursor-pointer border border-transparent hover:border-brand-border/50"
+                                    className="bg-brand-gray rounded-lg p-2 pr-10 font-medium text-gray-300 outline-none focus:ring-2 focus:ring-brand-primary transition-all w-full appearance-none disabled:opacity-50 cursor-pointer border border-transparent hover:border-brand-border/50"
                                     value={currentRestType}
                                     onChange={(e) => updateExercise(exercise.id, { ...exercise, restType: e.target.value, rest: e.target.value === 'Normal' ? '' : [] })}
                                 >
                                     <option value="Normal" className="bg-brand-gray text-gray-300">Normal</option>
                                     <option value="Custom" className="bg-brand-gray text-gray-300">Custom</option>
                                 </select>
-                                <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none group-hover/select:text-brand-lime transition-colors" />
+                                <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none group-hover/select:text-brand-primary transition-colors" />
                             </div>
                         </div>
                     </div>
@@ -134,7 +134,7 @@ export default function ExerciseCard({ exercise, updateExercise, deleteExercise,
                                             disabled={isReadOnly}
                                             type="number"
                                             min="0"
-                                            className="bg-brand-gray rounded-lg p-2 font-medium text-gray-300 outline-none focus:ring-2 focus:ring-brand-lime transition-all w-14 text-center disabled:opacity-50 text-sm appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [appearance:textfield] border border-transparent hover:border-brand-border/50"
+                                            className="bg-brand-gray rounded-lg p-2 font-medium text-gray-300 outline-none focus:ring-2 focus:ring-brand-primary transition-all w-14 text-center disabled:opacity-50 text-sm appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [appearance:textfield] border border-transparent hover:border-brand-border/50"
                                             placeholder={`S${i + 1}`}
                                             value={getArrayValue('reps', i)}
                                             onChange={(e) => handleRepsChange(e.target.value, i)}
@@ -147,7 +147,7 @@ export default function ExerciseCard({ exercise, updateExercise, deleteExercise,
                                     disabled={isReadOnly}
                                     type="number"
                                     min="0"
-                                    className="bg-brand-gray rounded-lg p-2 font-medium text-gray-300 outline-none focus:ring-2 focus:ring-brand-lime transition-all w-full disabled:opacity-50 appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [appearance:textfield] border border-transparent hover:border-brand-border/50"
+                                    className="bg-brand-gray rounded-lg p-2 font-medium text-gray-300 outline-none focus:ring-2 focus:ring-brand-primary transition-all w-full disabled:opacity-50 appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [appearance:textfield] border border-transparent hover:border-brand-border/50"
                                     placeholder="0"
                                     value={exercise.reps}
                                     onChange={(e) => handleRepsChange(e.target.value)}

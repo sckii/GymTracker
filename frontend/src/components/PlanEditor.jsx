@@ -28,7 +28,7 @@ export default function PlanEditor({ plan, updatePlan, onBack }) {
                         <ArrowLeft size={20} />
                     </button>
                     <h2 className="text-lg font-bold text-gray-100 truncate max-w-[200px]">{plan.name || 'New Plan'}</h2>
-                    {isReadOnly && <span className="bg-brand-lime/20 text-brand-lime px-2 py-0.5 rounded text-xs font-bold uppercase">Active</span>}
+                    {isReadOnly && <span className="bg-brand-primary/20 text-brand-primary px-2 py-0.5 rounded text-xs font-bold uppercase">Active</span>}
                 </div>
             </div>
 

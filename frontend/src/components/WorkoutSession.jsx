@@ -184,7 +184,7 @@ export default function WorkoutSession({ workout, previousLog, onFinish, onBack 
                     </button>
                     <div>
                         <h2 className="text-xl font-bold text-gray-100">{workout.name}</h2>
-                        <div className="flex items-center gap-1.5 text-brand-lime font-medium text-sm">
+                        <div className="flex items-center gap-1.5 text-brand-primary font-medium text-sm">
                             <Clock size={14} />
                             <span>{formatTime(duration)}</span>
                         </div>
@@ -192,7 +192,7 @@ export default function WorkoutSession({ workout, previousLog, onFinish, onBack 
                 </div>
                 <button
                     onClick={handleFinish}
-                    className="bg-brand-lime hover:bg-brand-lime-mid text-black px-5 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 shadow-sm transition-colors"
+                    className="bg-brand-primary hover:bg-brand-primary-dark text-black px-5 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 shadow-sm transition-colors"
                 >
                     <Save size={18} />
                     <span>Finish</span>
@@ -208,7 +208,7 @@ export default function WorkoutSession({ workout, previousLog, onFinish, onBack 
                                 <h3 className="text-lg font-bold text-gray-100">{exercise.name}</h3>
                                 <div className="flex gap-2 text-xs text-gray-400 font-medium uppercase tracking-wider mt-1">
                                     <span className="bg-brand-gray px-2 py-0.5 rounded">{exercise.sets} Sets</span>
-                                    <span className="bg-brand-gray px-2 py-0.5 rounded text-brand-lime">{exercise.type}</span>
+                                    <span className="bg-brand-gray px-2 py-0.5 rounded text-brand-primary">{exercise.type}</span>
                                 </div>
                             </div>
 
@@ -225,7 +225,7 @@ export default function WorkoutSession({ workout, previousLog, onFinish, onBack 
 
                                 {Array.from({ length: parseInt(exercise.sets) || 0 }).map((_, i) => {
                                     const isCompleted = logs[exercise.id]?.[i]?.completed;
-                                    const setClass = isCompleted ? 'bg-brand-lime/10 border-brand-lime/30' : 'bg-brand-gray border-brand-border';
+                                    const setClass = isCompleted ? 'bg-brand-primary/10 border-brand-primary/30' : 'bg-brand-gray border-brand-border';
                                     const weightError = validationErrors[`${exercise.id}-${i}-weight`];
                                     const repsError = validationErrors[`${exercise.id}-${i}-reps`];
                                     const prevStats = getPreviousStats(exercise.id, i);
@@ -247,7 +247,7 @@ export default function WorkoutSession({ workout, previousLog, onFinish, onBack 
                                                     type="number"
                                                     min="0"
                                                     placeholder="-"
-                                                    className={`w-full text-center bg-brand-dark rounded-lg py-1.5 text-sm font-bold text-gray-200 outline-none focus:ring-2 focus:ring-brand-lime border transition-all appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none ${weightError ? 'border-red-500 ring-1 ring-red-500/30' : 'border-transparent focus:border-brand-lime'} ${isCompleted ? 'text-brand-lime' : ''}`}
+                                                    className={`w-full text-center bg-brand-dark rounded-lg py-1.5 text-sm font-bold text-gray-200 outline-none focus:ring-2 focus:ring-brand-primary border transition-all appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none ${weightError ? 'border-red-500 ring-1 ring-red-500/30' : 'border-transparent focus:border-brand-primary'} ${isCompleted ? 'text-brand-primary' : ''}`}
                                                     value={logs[exercise.id]?.[i]?.weight || ''}
                                                     onChange={(e) => handleLogChange(exercise.id, i, 'weight', e.target.value)}
                                                 />
@@ -263,7 +263,7 @@ export default function WorkoutSession({ workout, previousLog, onFinish, onBack 
                                                     type="number"
                                                     min="0"
                                                     placeholder={getTargetLabel(exercise, i)}
-                                                    className={`w-full text-center bg-brand-dark rounded-lg py-1.5 text-sm font-bold text-gray-200 outline-none focus:ring-2 focus:ring-brand-lime border transition-all appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none ${repsError ? 'border-red-500 ring-1 ring-red-500/30' : 'border-transparent focus:border-brand-lime'} ${isCompleted ? 'text-brand-lime' : ''}`}
+                                                    className={`w-full text-center bg-brand-dark rounded-lg py-1.5 text-sm font-bold text-gray-200 outline-none focus:ring-2 focus:ring-brand-primary border transition-all appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none ${repsError ? 'border-red-500 ring-1 ring-red-500/30' : 'border-transparent focus:border-brand-primary'} ${isCompleted ? 'text-brand-primary' : ''}`}
                                                     value={logs[exercise.id]?.[i]?.reps || ''}
                                                     onChange={(e) => handleLogChange(exercise.id, i, 'reps', e.target.value)}
                                                 />
@@ -277,7 +277,7 @@ export default function WorkoutSession({ workout, previousLog, onFinish, onBack 
                                             <div className="col-span-2 flex justify-center">
                                                 <button
                                                     onClick={() => toggleSetComplete(exercise.id, i)}
-                                                    className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${isCompleted ? 'bg-brand-lime text-black shadow-md scale-105' : 'bg-brand-dark text-gray-600 hover:bg-black hover:text-gray-400'}`}
+                                                    className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${isCompleted ? 'bg-brand-primary text-black shadow-md scale-105' : 'bg-brand-dark text-gray-600 hover:bg-black hover:text-gray-400'}`}
                                                 >
                                                     <Check size={16} strokeWidth={3} />
                                                 </button>

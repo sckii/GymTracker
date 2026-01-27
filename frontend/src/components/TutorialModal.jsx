@@ -34,7 +34,7 @@ export default function TutorialModal({ isOpen, onClose, title, steps }) {
                 {/* Body */}
                 <div className="p-6 flex flex-col gap-4 min-h-[200px]">
                     <div className="flex-1">
-                        <h4 className="text-brand-lime font-bold text-lg mb-2">{steps[currentStep].title}</h4>
+                        <h4 className="text-brand-primary font-bold text-lg mb-2">{steps[currentStep].title}</h4>
                         <p className="text-gray-300 text-sm leading-relaxed">
                             {steps[currentStep].content}
                         </p>
@@ -45,7 +45,7 @@ export default function TutorialModal({ isOpen, onClose, title, steps }) {
                         {steps.map((_, index) => (
                             <div
                                 key={index}
-                                className={`h-1.5 rounded-full transition-all duration-300 ${index === currentStep ? 'w-6 bg-brand-lime' : 'w-1.5 bg-brand-border'}`}
+                                className={`h-1.5 rounded-full transition-all duration-300 ${index === currentStep ? 'w-6 bg-brand-primary' : 'w-1.5 bg-brand-border'}`}
                             />
                         ))}
                     </div>
@@ -64,7 +64,7 @@ export default function TutorialModal({ isOpen, onClose, title, steps }) {
 
                     <button
                         onClick={handleNext}
-                        className="bg-brand-lime hover:bg-brand-lime-mid text-black px-4 py-2 rounded-lg font-bold text-sm flex items-center gap-1.5 shadow-sm transition-all active:scale-95"
+                        className="bg-brand-primary hover:bg-brand-primary-mid text-black px-4 py-2 rounded-lg font-bold text-sm flex items-center gap-1.5 shadow-sm transition-all active:scale-95"
                     >
                         {currentStep === steps.length - 1 ? 'Got it!' : 'Next'}
                         {currentStep < steps.length - 1 && <ChevronRight size={16} />}

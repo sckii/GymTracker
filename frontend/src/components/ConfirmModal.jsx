@@ -10,19 +10,21 @@ export default function ConfirmModal({ isOpen, title, message, confirmText, onCo
                     <h3 className="text-lg font-bold text-gray-100 mb-2">{title}</h3>
                     <p className="text-sm text-gray-400">{message}</p>
                 </div>
-                <div className="bg-black/20 px-6 py-4 flex justify-end gap-3">
-                    <button
-                        onClick={onCancel}
-                        className="px-4 py-2 text-sm font-medium text-gray-300 bg-brand-light-gray border border-brand-border rounded-lg hover:bg-brand-border focus:outline-none focus:ring-2 focus:ring-brand-border"
-                    >
-                        Cancel
-                    </button>
-                    <button
-                        onClick={onConfirm}
-                        className="px-4 py-2 text-sm font-medium text-black bg-brand-lime rounded-lg hover:bg-brand-lime-mid focus:outline-none focus:ring-2 focus:ring-brand-lime focus:ring-offset-2 focus:ring-offset-brand-gray"
-                    >
-                        {confirmText}
-                    </button>
+                <div className="bg-black/20 px-6 py-4">
+                    <div className="flex gap-3">
+                        <button
+                            onClick={onCancel}
+                            className="flex-1 py-3 rounded-xl font-bold bg-brand-light-gray text-gray-300 hover:bg-brand-border transition-colors"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            onClick={onConfirm}
+                            className="flex-1 py-3 rounded-xl font-bold text-brand-dark transition-colors bg-brand-primary hover:bg-brand-primary-dark"
+                        >
+                            {confirmText}
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

@@ -57,7 +57,7 @@ export default function PlanInfoView({ plan, updatePlan }) {
                         <input
                             disabled={isReadOnly}
                             type="date"
-                            className={`bg-brand-light-gray border border-brand-border rounded-xl p-3 text-sm text-gray-300 outline-none focus:border-brand-lime transition-all ${isReadOnly ? 'bg-brand-gray text-gray-500 opacity-60' : ''}`}
+                            className={`bg-brand-light-gray border border-brand-border rounded-xl p-3 text-sm text-gray-300 outline-none focus:border-brand-primary transition-all ${isReadOnly ? 'bg-brand-gray text-gray-500 opacity-60' : ''}`}
                             value={plan.startDate}
                             onChange={(e) => handleInputChange('startDate', e.target.value)}
                         />

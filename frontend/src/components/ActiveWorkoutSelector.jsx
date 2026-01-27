@@ -20,7 +20,7 @@ export default function ActiveWorkoutSelector({ activePlan, onSelectWorkout }) {
         <div className="p-8 h-full flex flex-col">
             <div className="mb-8">
                 <h2 className="text-3xl font-bold text-gray-100 mb-2">Ready to train?</h2>
-                <p className="text-gray-400 text-lg">Select a workout from <span className="font-semibold text-brand-lime">{activePlan.name}</span></p>
+                <p className="text-gray-400 text-lg">Select a workout from <span className="font-semibold text-brand-primary">{activePlan.name}</span></p>
             </div>
 
             <div className="grid gap-4">
@@ -28,10 +28,10 @@ export default function ActiveWorkoutSelector({ activePlan, onSelectWorkout }) {
                     <button
                         key={workout.id}
                         onClick={() => onSelectWorkout(workout)}
-                        className="group flex items-center justify-between p-6 bg-brand-light-gray rounded-2xl border border-brand-border shadow-sm hover:shadow-md hover:border-brand-lime/50 hover:bg-brand-lime/5 transition-all text-left"
+                        className="group flex items-center justify-between p-6 bg-brand-light-gray rounded-2xl border border-brand-border shadow-sm hover:shadow-md hover:border-brand-primary/50 hover:bg-brand-primary/5 transition-all text-left"
                     >
                         <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-full bg-brand-gray text-brand-lime flex items-center justify-center font-bold text-xl group-hover:bg-brand-lime group-hover:text-black transition-colors">
+                            <div className="w-12 h-12 rounded-full bg-brand-gray text-brand-primary flex items-center justify-center font-bold text-xl group-hover:bg-brand-primary group-hover:text-black transition-colors">
                                 {workout.name.charAt(0).toUpperCase()}
                             </div>
                             <div>

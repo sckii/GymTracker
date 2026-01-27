@@ -67,9 +67,9 @@ export default function WorkoutView({ workout, setWorkouts, isReadOnly }) {
                 {!isReadOnly && (
                     <button
                         onClick={addExercise}
-                        className="w-full py-4 border-2 border-dashed border-brand-border rounded-xl text-gray-500 font-medium hover:border-brand-lime hover:text-brand-lime transition-colors flex items-center justify-center gap-2 group"
+                        className="w-full py-4 border-2 border-dashed border-brand-border rounded-xl text-gray-500 font-medium hover:border-brand-primary hover:text-brand-primary transition-colors flex items-center justify-center gap-2 group"
                     >
-                        <div className="bg-brand-light-gray p-1 rounded-full group-hover:bg-brand-lime group-hover:text-black transition-colors">
+                        <div className="bg-brand-light-gray p-1 rounded-full group-hover:bg-brand-primary group-hover:text-black transition-colors">
                             <Plus size={20} />
                         </div>
                         Add Exercise
