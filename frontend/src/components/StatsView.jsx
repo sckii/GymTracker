@@ -23,67 +23,7 @@ ChartJS.register(
     Legend
 );
 
-function CustomDropdown({ label, options, value, onChange, disabled, placeholder = "Select...", containerClass = "flex-1 min-w-[140px]" }) {
-    const [isOpen, setIsOpen] = useState(false);
-
-    // Close dropdown when clicking outside
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (isOpen && !event.target.closest(`.dropdown-${label.replace(/[\s\(\)]/g, '')}`)) {
-                setIsOpen(false);
-            }
-        };
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, [isOpen, label]);
-
-    const selectedOption = options.find(o => o.value === value);
-
-    const labelClass = label.replace(/[\s\(\)]/g, '');
-
-    return (
-        <div className={`relative flex flex-col gap-1 ${containerClass} dropdown-${labelClass}`}>
-            <label className={`text-xs font-bold uppercase tracking-wider ml-1 ${disabled ? 'text-gray-600' : 'text-gray-400'}`}>
-                {label}
-            </label>
-
-            <button
-                onClick={() => !disabled && setIsOpen(!isOpen)}
-                disabled={disabled}
-                className={`w-full flex items-center justify-between bg-brand-light-gray border ${isOpen ? 'border-brand-primary ring-1 ring-brand-primary/50' : 'border-brand-border'} text-gray-100 text-sm rounded-lg px-3 py-2 outline-none transition-all ${disabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-brand-border/30 cursor-pointer'}`}
-            >
-                <span className="truncate max-w-[250px] text-left">
-                    {selectedOption ? selectedOption.label : placeholder}
-                </span>
-                <ChevronDown size={16} className={`text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
-            </button>
-
-            {isOpen && !disabled && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-brand-gray border border-brand-border rounded-xl shadow-2xl z-50 max-h-[250px] overflow-y-auto animate-in fade-in zoom-in-95 duration-100">
-                    <div className="p-1 flex flex-col gap-0.5">
-                        {options.length === 0 ? (
-                            <div className="px-3 py-2 text-sm text-gray-500 text-center">No options</div>
-                        ) : (
-                            options.map((option) => (
-                                <button
-                                    key={option.value}
-                                    onClick={() => {
-                                        onChange(option.value);
-                                        setIsOpen(false);
-                                    }}
-                                    className={`flex items-center justify-between w-full px-3 py-2 text-sm rounded-lg text-left transition-colors ${option.value === value ? 'bg-brand-primary/10 text-brand-primary' : 'text-gray-300 hover:bg-brand-light-gray hover:text-white'}`}
-                                >
-                                    <span className="truncate">{option.label}</span>
-                                    {option.value === value && <Check size={14} />}
-                                </button>
-                            ))
-                        )}
-                    </div>
-                </div>
-            )}
-        </div>
-    );
-}
+import CustomDropdown from './CustomDropdown';
 
 export default function StatsView({ logs, plans, activePlanId, onBack }) {
     const [activeTab, setActiveTab] = useState('general'); // 'general' | 'charts' | 'table'

@@ -269,6 +269,7 @@ function App() {
         const mappedPlans = plansData.map(p => ({
           ...p,
           isActive: p.is_active,
+          isAI: p.is_ai, // Map DB snake_case to app camelCase
           startDate: p.start_date || p.startDate // Handle both for safety
         }));
         setPlans(mappedPlans);
@@ -350,6 +351,7 @@ function App() {
         name: newPlan.name,
         description: newPlan.description,
         is_active: newPlan.isActive,
+        is_ai: false, // Default manual plans are not AI
         start_date: newPlan.startDate,
         duration: newPlan.duration,
         weight: newPlan.weight,
@@ -383,6 +385,7 @@ function App() {
         name: securePlan.name,
         description: securePlan.description,
         is_active: securePlan.isActive,
+        is_ai: securePlan.isAI || false,
         start_date: securePlan.startDate,
         duration: securePlan.duration,
         weight: securePlan.weight,
@@ -416,6 +419,7 @@ function App() {
         user_id: session.user.id,
         name: updatedPlan.name,
         is_active: updatedPlan.isActive, // Mapped correctly
+        is_ai: updatedPlan.isAI,
         workouts: updatedPlan.workouts,
         description: updatedPlan.description,
         start_date: updatedPlan.startDate, // Mapped to snake_case
@@ -596,6 +600,7 @@ function App() {
             addPlan={addPlan}
             deletePlan={deletePlan}
             showNotification={showNotification}
+            userPlan={userPlan}
           />
         )}
 

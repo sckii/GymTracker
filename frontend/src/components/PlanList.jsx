@@ -1,10 +1,11 @@
 import React, { useRef, useState } from 'react';
-import { Plus, ArrowLeft, ChevronRight, Upload, Trash2, Download, Share2, FileText, Link as LinkIcon, X, Copy, Check } from 'lucide-react';
+import { Plus, ArrowLeft, ChevronRight, Upload, Trash2, Download, Share2, FileText, Link as LinkIcon, X, Copy, Check, Sparkles } from 'lucide-react';
+import AIPlanGeneratorModal from './AIPlanGeneratorModal';
 import { generateShareLink, parseShareLink } from '../lib/share';
 
-export default function PlanList({ plans, setView, setSelectedPlanId, createPlan, addPlan, deletePlan, showNotification }) {
+export default function PlanList({ plans, setView, setSelectedPlanId, createPlan, addPlan, deletePlan, showNotification, userPlan }) {
     const fileInputRef = useRef(null);
-    const [activeModal, setActiveModal] = useState(null); // 'export', 'import', 'share-result', 'import-link'
+    const [activeModal, setActiveModal] = useState(null); // 'export', 'import', 'share-result', 'import-link', 'ai-generate'
     const [selectedPlanForExport, setSelectedPlanForExport] = useState(null);
     const [generatedLink, setGeneratedLink] = useState('');
     const [importLinkInput, setImportLinkInput] = useState('');
@@ -368,6 +369,21 @@ export default function PlanList({ plans, setView, setSelectedPlanId, createPlan
         e.target.value = ''; // Reset
     };
 
+    const handlePlanGenerated = (csvData) => {
+        console.log(csvData);
+        const plan = parseCSV(csvData);
+        if (plan) {
+            plan.isAI = true; // Mark as AI generated
+            let addPlanRes = addPlan(plan);
+            if (addPlanRes !== "limit_reached") {
+                showNotification('AI Plan generated successfully!', 'success');
+                setActiveModal(null);
+            }
+        } else {
+            showNotification('Failed to parse AI plan.', 'error');
+        }
+    };
+
     return (
         <div className="flex flex-col h-full relative">
             <div className="p-6 pb-2 flex items-center gap-4">
@@ -390,7 +406,14 @@ export default function PlanList({ plans, setView, setSelectedPlanId, createPlan
                             onClick={() => { setSelectedPlanId(plan.id); setView('plan-editor'); }}
                             className="flex-1 cursor-pointer"
                         >
-                            <h3 className="text-lg font-bold text-gray-100">{plan.name || 'Untitled Plan'}</h3>
+                            <h3 className="text-lg font-bold text-gray-100 flex items-center gap-2">
+                                {plan.name || 'Untitled Plan'}
+                                {plan.isAI && (
+                                    <span className="text-[10px] font-bold text-white bg-gradient-to-r from-purple-600 to-indigo-600 px-1.5 py-0.5 rounded flex items-center gap-0.5 shadow-sm border border-purple-400/30">
+                                        <Sparkles size={10} fill="currentColor" /> AI
+                                    </span>
+                                )}
+                            </h3>
                             <p className="text-sm text-gray-400">{plan.description || 'No description'}</p>
                             {plan.isActive && <span className="inline-block mt-1 text-xs font-bold text-brand-primary bg-brand-primary/10 px-2 py-0.5 rounded">ACTIVE</span>}
                         </div>
@@ -445,11 +468,25 @@ export default function PlanList({ plans, setView, setSelectedPlanId, createPlan
                     Import
                 </button>
                 <button
+                    onClick={() => {
+                        const aiCount = plans.filter(p => p.isAI).length;
+                        if (aiCount >= userPlan.maxAIPlans) {
+                            showNotification(`AI Plan limit reached (${userPlan.maxAIPlans}) for ${userPlan.name} tier.`, 'error');
+                            return;
+                        }
+                        setActiveModal('ai-generate');
+                    }}
+                    className="flex-1 py-3 px-2 bg-gradient-to-r from-purple-900/40 to-indigo-900/40 border border-purple-500/30 text-purple-200 rounded-xl font-bold hover:bg-purple-800/20 transition-colors flex items-center justify-center gap-2"
+                >
+                    <Sparkles size={16} className="text-purple-400" />
+                    AI Plan
+                </button>
+                <button
                     onClick={createPlan}
-                    className="w-full bg-brand-primary hover:bg-brand-primary-dark text-brand-dark font-bold py-4 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-brand-primary/20 transition-all active:scale-[0.98] group"
+                    className="flex-1 bg-brand-primary hover:bg-brand-primary-dark text-brand-dark font-bold py-4 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-brand-primary/20 transition-all active:scale-[0.98] group"
                 >
                     <Plus size={24} className="group-hover:rotate-90 transition-transform duration-300" />
-                    CREATE NEW PLAN
+                    NEW PLAN
                 </button>
             </div>
 
@@ -569,6 +606,12 @@ export default function PlanList({ plans, setView, setSelectedPlanId, createPlan
                     </div>
                 </div>
             )}
+            {/* AI Generator Modal */}
+            <AIPlanGeneratorModal
+                isOpen={activeModal === 'ai-generate'}
+                onClose={() => setActiveModal(null)}
+                onPlanGenerated={handlePlanGenerated}
+            />
         </div>
     );
 }
