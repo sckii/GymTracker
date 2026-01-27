@@ -1,14 +1,17 @@
 import React, { useState } from 'react';
 import { Plus, X, Info } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function TabManager({ workouts, activeTab, setActiveTab, setWorkouts, isReadOnly }) {
+    const { t } = useLanguage();
     const [editingId, setEditingId] = useState(null);
     const [editName, setEditName] = useState('');
 
     const addTab = () => {
         if (isReadOnly) return;
+        if (isReadOnly) return;
         const newId = Date.now().toString();
-        const newWorkout = { id: newId, name: 'New Workout', exercises: [] };
+        const newWorkout = { id: newId, name: t('tab_new_workout'), exercises: [] };
         setWorkouts(prev => [...prev, newWorkout]);
         setActiveTab(newId);
     };
@@ -50,7 +53,7 @@ export default function TabManager({ workouts, activeTab, setActiveTab, setWorko
           `}
             >
                 <Info size={16} />
-                <span>Plan Details</span>
+                <span>{t('tab_plan_details')}</span>
             </div>
 
             <div className="w-[1px] h-6 bg-brand-border mx-1 shrink-0"></div>

@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { ArrowLeft, BarChart2, Table as TableIcon, X, ChevronDown, Check } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 import {
     Chart as ChartJS,
     CategoryScale,
@@ -26,6 +27,7 @@ ChartJS.register(
 import CustomDropdown from './CustomDropdown';
 
 export default function StatsView({ logs, plans, activePlanId, onBack }) {
+    const { t } = useLanguage();
     const [activeTab, setActiveTab] = useState('general'); // 'general' | 'charts' | 'table'
     const [showDesktopWarning, setShowDesktopWarning] = useState(window.innerWidth < 768);
 
@@ -206,7 +208,7 @@ export default function StatsView({ logs, plans, activePlanId, onBack }) {
             labels,
             datasets: [
                 {
-                    label: `Weight (Set ${selectedSet})`,
+                    label: t('stats_chart_weight').replace('{set}', selectedSet),
                     data: weightData,
                     borderColor: '#FF204E', // brand-primary
                     backgroundColor: '#FF204E',
@@ -217,7 +219,7 @@ export default function StatsView({ logs, plans, activePlanId, onBack }) {
                     pointHoverRadius: 6
                 },
                 {
-                    label: `Reps (Set ${selectedSet})`,
+                    label: t('stats_chart_reps').replace('{set}', selectedSet),
                     data: repsData,
                     borderColor: '#ffffffff', // brand-secondary
                     backgroundColor: '#ffffffff',
@@ -253,8 +255,8 @@ export default function StatsView({ logs, plans, activePlanId, onBack }) {
         },
         scales: {
             x: { grid: { color: '#3f3f46', drawBorder: false }, ticks: { color: '#a1a1aa' } },
-            y: { type: 'linear', display: true, position: 'left', grid: { color: '#3f3f46', drawBorder: false }, ticks: { color: '#FF204E' }, title: { display: true, text: 'Weight (kg)', color: '#FF204E' } },
-            y1: { type: 'linear', display: true, position: 'right', grid: { drawOnChartArea: false }, ticks: { color: '#ffffffff' }, title: { display: true, text: 'Reps', color: '#ffffffff' } },
+            y: { type: 'linear', display: true, position: 'left', grid: { color: '#3f3f46', drawBorder: false }, ticks: { color: '#FF204E' }, title: { display: true, text: t('stats_weight_kg'), color: '#FF204E' } },
+            y1: { type: 'linear', display: true, position: 'right', grid: { drawOnChartArea: false }, ticks: { color: '#ffffffff' }, title: { display: true, text: t('session_reps'), color: '#ffffffff' } },
         }
     };
 
@@ -262,7 +264,7 @@ export default function StatsView({ logs, plans, activePlanId, onBack }) {
         <div className="flex flex-col h-full bg-brand-gray relative">
             {showDesktopWarning && (
                 <div className="absolute top-4 left-4 right-4 z-50 bg-yellow-500/10 border border-yellow-500/30 text-yellow-200 px-4 py-3 rounded-xl flex justify-between items-center shadow-lg backdrop-blur-sm animate-in fade-in slide-in-from-top-2">
-                    <span className="text-xs font-medium">For best experience with charts, please use a Desktop.</span>
+                    <span className="text-xs font-medium">{t('stats_desktop_warning')}</span>
                     <button onClick={() => setShowDesktopWarning(false)} className="text-yellow-500 hover:text-yellow-100">
                         <X size={16} />
                     </button>
@@ -276,29 +278,29 @@ export default function StatsView({ logs, plans, activePlanId, onBack }) {
                             <ArrowLeft size={24} />
                         </button>
                         <h2 className="text-2xl font-black italic tracking-tighter text-white">
-                            PROGRESS <span className="text-brand-primary font-sans font-bold">STATS</span>
+                            {t('stats_title')}
                         </h2>
                     </div>
 
                     <div className="flex bg-brand-gray p-1 rounded-lg border border-brand-border">
                         <button onClick={() => setActiveTab('general')} className={`p-2 rounded-md flex items-center gap-2 text-sm font-bold transition-all ${activeTab === 'general' ? 'bg-brand-light-gray text-brand-primary shadow-sm' : 'text-gray-400 hover:text-white'}`}>
-                            <BarChart2 size={16} /> <span className="hidden sm:inline">General</span>
+                            <BarChart2 size={16} /> <span className="hidden sm:inline">{t('stats_tab_general')}</span>
                         </button>
                         <button onClick={() => setActiveTab('charts')} className={`p-2 rounded-md flex items-center gap-2 text-sm font-bold transition-all ${activeTab === 'charts' ? 'bg-brand-light-gray text-brand-primary shadow-sm' : 'text-gray-400 hover:text-white'}`}>
-                            <BarChart2 size={16} /> <span className="hidden sm:inline">Charts</span>
+                            <BarChart2 size={16} /> <span className="hidden sm:inline">{t('stats_tab_charts')}</span>
                         </button>
                         <button onClick={() => setActiveTab('table')} className={`p-2 rounded-md flex items-center gap-2 text-sm font-bold transition-all ${activeTab === 'table' ? 'bg-brand-light-gray text-brand-primary shadow-sm' : 'text-gray-400 hover:text-white'}`}>
-                            <TableIcon size={16} /> <span className="hidden sm:inline">Logs</span>
+                            <TableIcon size={16} /> <span className="hidden sm:inline">{t('stats_tab_logs')}</span>
                         </button>
                     </div>
                 </div>
 
                 <div className="flex flex-wrap gap-3 p-4 bg-brand-gray/50 rounded-xl border border-brand-border/50 shadow-inner items-end">
                     <CustomDropdown
-                        label="Plan"
+                        label={t('stats_filter_plan')}
                         options={plans.map(p => ({
                             value: p.id,
-                            label: p.isActive ? `★ ${p.name} (Active)` : p.name
+                            label: p.isActive ? `★ ${p.name} (${t('editor_active')})` : p.name
                         }))}
                         value={selectedPlanId}
                         onChange={setSelectedPlanId}
@@ -313,17 +315,17 @@ export default function StatsView({ logs, plans, activePlanId, onBack }) {
                     {activeTab === 'charts' ? (
                         <>
                             <CustomDropdown
-                                label="Exercise"
+                                label={t('stats_filter_exercise')}
                                 options={availableExercises.map(ex => ({ value: ex, label: ex }))}
                                 value={selectedExercise}
                                 onChange={setSelectedExercise}
-                                placeholder={availableExercises.length === 0 ? "No data..." : "Select..."}
+                                placeholder={availableExercises.length === 0 ? t('stats_no_data') : t('stats_select')}
                                 disabled={availableExercises.length === 0}
                             />
 
                             <CustomDropdown
-                                label="Set"
-                                options={availableSets.map(s => ({ value: s, label: `Set ${s}` }))}
+                                label={t('stats_filter_set')}
+                                options={availableSets.map(s => ({ value: s, label: `${t('session_set')} ${s}` }))}
                                 value={selectedSet}
                                 onChange={setSelectedSet}
                                 disabled={availableSets.length === 0}
@@ -332,11 +334,11 @@ export default function StatsView({ logs, plans, activePlanId, onBack }) {
                         </>
                     ) : (
                         <CustomDropdown
-                            label="Workout"
-                            options={[{ value: 'all', label: 'All Workouts' }, ...availableWorkouts.map(w => ({ value: w, label: w }))]}
+                            label={t('stats_filter_workout')}
+                            options={[{ value: 'all', label: t('stats_filter_all_workouts') }, ...availableWorkouts.map(w => ({ value: w, label: w }))]}
                             value={selectedWorkout}
                             onChange={setSelectedWorkout}
-                            placeholder="Select Workout..."
+                            placeholder={t('stats_select_workout')}
                         />
                     )}
                 </div>
@@ -351,14 +353,14 @@ export default function StatsView({ logs, plans, activePlanId, onBack }) {
                                 <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                                     <TableIcon size={64} className="text-brand-primary" />
                                 </div>
-                                <h3 className="text-gray-400 font-bold uppercase tracking-wider text-xs mb-1">Total Training Days</h3>
+                                <h3 className="text-gray-400 font-bold uppercase tracking-wider text-xs mb-1">{t('stats_total_days')}</h3>
                                 <p className="text-4xl font-black text-white">{generalStats?.totalDays || 0}</p>
-                                <div className="mt-2 text-xs text-brand-primary font-medium">Recorded Sessions</div>
+                                <div className="mt-2 text-xs text-brand-primary font-medium">{t('stats_recorded_sessions')}</div>
                             </div>
 
                             {/* Placeholder for future metrics */}
                             <div className="bg-brand-light-gray p-6 rounded-2xl border border-brand-border/50 shadow-lg relative overflow-hidden group md:col-span-1 lg:col-span-2 flex items-center justify-center border-dashed">
-                                <p className="text-gray-500 font-medium text-sm">More metrics coming soon...</p>
+                                <p className="text-gray-500 font-medium text-sm">{t('stats_coming_soon')}</p>
                             </div>
                         </div>
 
@@ -366,12 +368,12 @@ export default function StatsView({ logs, plans, activePlanId, onBack }) {
                         <div>
                             <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
                                 <Check size={20} className="text-brand-primary" />
-                                Personal Records
+                                {t('stats_pr')}
                             </h3>
 
                             {!generalStats || generalStats.records.length === 0 ? (
                                 <div className="text-center py-12 bg-brand-light-gray/20 rounded-xl border border-brand-border/30">
-                                    <p className="text-gray-500">No records found for this plan yet.</p>
+                                    <p className="text-gray-500">{t('stats_no_records')}</p>
                                 </div>
                             ) : (
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -384,7 +386,7 @@ export default function StatsView({ logs, plans, activePlanId, onBack }) {
                                             </div>
                                             <div className="mt-2 flex items-center justify-between border-t border-gray-700/50 pt-2">
                                                 <div className="text-xs text-gray-400">
-                                                    For <span className="text-white font-bold">{record.reps}</span> reps
+                                                    {t('stats_for_reps').replace('{reps}', record.reps)}
                                                 </div>
                                                 <div className="text-[10px] text-gray-600">
                                                     {new Date(record.date).toLocaleDateString()}
@@ -399,7 +401,7 @@ export default function StatsView({ logs, plans, activePlanId, onBack }) {
                 ) : activeTab === 'table' ? (
                     <div className="flex flex-col gap-4 pb-20">
                         {filteredLogList.length === 0 ? (
-                            <div className="text-center text-gray-500 py-10">No logs found matching your filters.</div>
+                            <div className="text-center text-gray-500 py-10">{t('stats_no_logs')}</div>
                         ) : (
                             filteredLogList.map((session) => (
                                 <div key={session.id} className="bg-brand-light-gray border border-brand-border rounded-xl p-5 shadow-sm animate-in fade-in slide-in-from-bottom-2">
@@ -419,7 +421,7 @@ export default function StatsView({ logs, plans, activePlanId, onBack }) {
                                             <div key={`${session.id}-${ex.id || exIdx}`} className="bg-brand-gray/50 rounded-lg p-3 border border-brand-border/30">
                                                 <div className="flex justify-between items-center mb-2">
                                                     <span className="text-sm font-bold text-brand-primary truncate">{ex.name}</span>
-                                                    <span className="text-[10px] text-gray-500 bg-brand-gray px-1.5 py-0.5 rounded border border-brand-border/30">{ex.sets?.length || 0} Sets</span>
+                                                    <span className="text-[10px] text-gray-500 bg-brand-gray px-1.5 py-0.5 rounded border border-brand-border/30">{ex.sets?.length || 0} {t('stats_sets_suffix')}</span>
                                                 </div>
                                                 <div className="space-y-1">
                                                     {ex.sets && ex.sets.map((set, sIdx) => (
@@ -445,15 +447,15 @@ export default function StatsView({ logs, plans, activePlanId, onBack }) {
                         {availableExercises.length === 0 ? (
                             <div className="flex-1 flex flex-col items-center justify-center text-gray-500 border-2 border-dashed border-brand-border/30 rounded-xl">
                                 <BarChart2 size={64} className="mb-4 opacity-20 text-brand-primary" />
-                                <p className="text-lg font-medium text-gray-400">No workout data found</p>
-                                <p className="text-sm">Complete a workout session to see your stats evolve!</p>
+                                <p className="text-lg font-medium text-gray-400">{t('stats_no_workout_data')}</p>
+                                <p className="text-sm">{t('stats_complete_workout')}</p>
                             </div>
                         ) : (
                             <div className="relative w-full flex-1 min-h-0">
                                 {!selectedExercise ? (
                                     <div className="flex-1 flex flex-col items-center justify-center text-gray-500">
                                         <BarChart2 size={48} className="mb-4 opacity-50 text-brand-primary" />
-                                        <p className="text-md font-medium text-gray-300">Select a specific Exercise to view Charts</p>
+                                        <p className="text-md font-medium text-gray-300">{t('stats_select_chart_exercise')}</p>
                                     </div>
                                 ) : (
                                     <Line options={chartOptions} data={detailedChartData} />

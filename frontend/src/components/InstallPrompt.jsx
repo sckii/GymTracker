@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Download, X } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function InstallPrompt() {
+    const { t } = useLanguage();
     const [deferredPrompt, setDeferredPrompt] = useState(null);
     const [isVisible, setIsVisible] = useState(false);
 
@@ -47,8 +49,8 @@ export default function InstallPrompt() {
                         <Download size={24} />
                     </div>
                     <div>
-                        <h3 className="font-bold text-gray-800">Install App</h3>
-                        <p className="text-sm text-gray-500">Add to home screen for better experience</p>
+                        <h3 className="font-bold text-gray-800">{t('install_title')}</h3>
+                        <p className="text-sm text-gray-500">{t('install_desc')}</p>
                     </div>
                 </div>
                 <button
@@ -63,7 +65,7 @@ export default function InstallPrompt() {
                 onClick={handleInstallClick}
                 className="w-full py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors shadow-lg shadow-blue-200"
             >
-                Install Now
+                {t('install_btn')}
             </button>
         </div>
     );

@@ -1,7 +1,10 @@
 import React from 'react';
 import { Trash2, ChevronDown } from 'lucide-react';
 
+import { useLanguage } from '../context/LanguageContext';
+
 export default function ExerciseCard({ exercise, updateExercise, deleteExercise, isReadOnly, isLast }) {
+    const { t } = useLanguage();
     const currentType = (exercise.type === 'Pyramid' || exercise.type === 'Drop-set') ? 'Custom' : (exercise.type || 'Normal');
     const currentRestType = exercise.restType || 'Normal';
 
@@ -54,7 +57,7 @@ export default function ExerciseCard({ exercise, updateExercise, deleteExercise,
                     <input
                         disabled={isReadOnly}
                         className="font-bold text-base text-gray-100 placeholder-gray-600 w-full outline-none bg-transparent"
-                        placeholder="Exercise Name"
+                        placeholder={t('exercise_name_placeholder')}
                         value={exercise.name}
                         onChange={(e) => updateExercise(exercise.id, { ...exercise, name: e.target.value })}
                     />
@@ -71,9 +74,9 @@ export default function ExerciseCard({ exercise, updateExercise, deleteExercise,
                 {/* Main Configuration Grid */}
                 <div className="flex flex-col gap-4">
                     {/* Row 1: Configurations */}
-                    <div className="grid grid-cols-3 gap-3">
+                    <div className="grid grid-cols-[4fr_1fr_4fr] gap-3">
                         <div className="flex flex-col gap-1">
-                            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Exercise Type</label>
+                            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('label_exercise_type')}</label>
                             <div className="relative group/select">
                                 <select
                                     disabled={isReadOnly}
@@ -81,15 +84,15 @@ export default function ExerciseCard({ exercise, updateExercise, deleteExercise,
                                     value={currentType}
                                     onChange={(e) => updateExercise(exercise.id, { ...exercise, type: e.target.value, reps: e.target.value === 'Normal' ? '' : [] })}
                                 >
-                                    <option value="Normal" className="bg-brand-gray text-gray-300">Normal</option>
-                                    <option value="Custom" className="bg-brand-gray text-gray-300">Custom</option>
+                                    <option value="Normal" className="bg-brand-gray text-gray-300">{t('opt_normal')}</option>
+                                    <option value="Custom" className="bg-brand-gray text-gray-300">{t('opt_custom')}</option>
                                 </select>
                                 <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none group-hover/select:text-brand-primary transition-colors" />
                             </div>
                         </div>
 
                         <div className="flex flex-col gap-1">
-                            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Sets</label>
+                            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('label_sets')}</label>
                             <input
                                 disabled={isReadOnly}
                                 type="number"
@@ -105,7 +108,7 @@ export default function ExerciseCard({ exercise, updateExercise, deleteExercise,
                         </div>
 
                         <div className="flex flex-col gap-1">
-                            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Rest Type</label>
+                            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('label_rest_type')}</label>
                             <div className="relative group/select">
                                 <select
                                     disabled={isReadOnly}
@@ -113,8 +116,8 @@ export default function ExerciseCard({ exercise, updateExercise, deleteExercise,
                                     value={currentRestType}
                                     onChange={(e) => updateExercise(exercise.id, { ...exercise, restType: e.target.value, rest: e.target.value === 'Normal' ? '' : [] })}
                                 >
-                                    <option value="Normal" className="bg-brand-gray text-gray-300">Normal</option>
-                                    <option value="Custom" className="bg-brand-gray text-gray-300">Custom</option>
+                                    <option value="Normal" className="bg-brand-gray text-gray-300">{t('opt_normal')}</option>
+                                    <option value="Custom" className="bg-brand-gray text-gray-300">{t('opt_custom')}</option>
                                 </select>
                                 <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none group-hover/select:text-brand-primary transition-colors" />
                             </div>
@@ -125,7 +128,7 @@ export default function ExerciseCard({ exercise, updateExercise, deleteExercise,
                     <div className={(currentType === 'Normal' && currentRestType === 'Normal') ? "grid grid-cols-2 gap-3" : "flex flex-col gap-4"}>
                         {/* Reps Section */}
                         <div className="flex flex-col gap-1">
-                            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Reps</label>
+                            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('label_reps')}</label>
                             {currentType === 'Custom' ? (
                                 <div className="flex flex-wrap gap-2">
                                     {Array.from({ length: parseInt(exercise.sets) || 0 }).map((_, i) => (
@@ -140,7 +143,7 @@ export default function ExerciseCard({ exercise, updateExercise, deleteExercise,
                                             onChange={(e) => handleRepsChange(e.target.value, i)}
                                         />
                                     ))}
-                                    {(parseInt(exercise.sets) || 0) === 0 && <span className="text-xs text-gray-500 italic p-2">Set sets count</span>}
+                                    {(parseInt(exercise.sets) || 0) === 0 && <span className="text-xs text-gray-500 italic p-2">{t('text_set_sets_count')}</span>}
                                 </div>
                             ) : (
                                 <input
@@ -157,7 +160,7 @@ export default function ExerciseCard({ exercise, updateExercise, deleteExercise,
 
                         {/* Rest Section */}
                         <div className="flex flex-col gap-1">
-                            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Rest (s)</label>
+                            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('label_rest_seconds')}</label>
                             {currentRestType === 'Custom' ? (
                                 <div className="flex flex-wrap gap-2">
                                     {Array.from({ length: parseInt(exercise.sets) || 0 }).map((_, i) => (
@@ -172,7 +175,7 @@ export default function ExerciseCard({ exercise, updateExercise, deleteExercise,
                                             onChange={(e) => handleRestChange(e.target.value, i)}
                                         />
                                     ))}
-                                    {(parseInt(exercise.sets) || 0) === 0 && <span className="text-xs text-gray-500 italic p-2">Set sets count</span>}
+                                    {(parseInt(exercise.sets) || 0) === 0 && <span className="text-xs text-gray-500 italic p-2">{t('text_set_sets_count')}</span>}
                                 </div>
                             ) : (
                                 <input
@@ -197,7 +200,7 @@ export default function ExerciseCard({ exercise, updateExercise, deleteExercise,
                     </div>
                     <div className="relative flex items-center justify-center">
                         <div className="bg-brand-gray px-3 flex items-center gap-2">
-                            <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Rest After Exercise</span>
+                            <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">{t('label_rest_after')}</span>
                             <input
                                 disabled={isReadOnly}
                                 type="number"
@@ -210,7 +213,7 @@ export default function ExerciseCard({ exercise, updateExercise, deleteExercise,
                                     updateExercise(exercise.id, { ...exercise, restAfter: e.target.value })
                                 }}
                             />
-                            <span className="text-s font-bold text-gray-500">s</span>
+                            <span className="text-sm font-bold text-gray-500">{t('label_rest_metric')}</span>
                         </div>
                     </div>
                 </div>

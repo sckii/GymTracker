@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Clock, Check, Save } from 'lucide-react';
 import TutorialModal from './TutorialModal';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function WorkoutSession({ workout, previousLog, onFinish, onBack }) {
+    const { t } = useLanguage();
     const [logs, setLogs] = useState({});
     const [duration, setDuration] = useState(0);
     const [showTutorial, setShowTutorial] = useState(false);
@@ -28,21 +30,21 @@ export default function WorkoutSession({ workout, previousLog, onFinish, onBack 
 
     const tutorialSteps = [
         {
-            title: "Track Your Performance",
+            title: t('tutorial_step1_title'),
             content: (
                 <div className="flex flex-col gap-3">
-                    <p>Welcome to your workout session! Log your weight and reps for each set just like a real notebook.</p>
+                    <p>{t('tutorial_step1_content')}</p>
                 </div>
             )
         },
         {
-            title: "Targets & Rest",
+            title: t('tutorial_step2_title'),
             content: (
                 <div className="flex flex-col gap-3">
-                    <p>See your targets and rest times directly in the row.</p>
+                    <p>{t('tutorial_step2_content')}</p>
                     <div className="grid grid-cols-12 gap-2 text-xs font-bold text-gray-500 uppercase text-center bg-brand-light-gray p-2 rounded-lg border border-brand-border/50">
-                        <div className="col-span-4 text-left pl-2">Target</div>
-                        <div className="col-span-4 text-center">Rest</div>
+                        <div className="col-span-4 text-left pl-2">{t('session_target')}</div>
+                        <div className="col-span-4 text-center">{t('session_rest')}</div>
                         <div className="col-span-4 text-center"></div>
 
                         <div className="col-span-4 flex items-center text-gray-400 pl-2 text-sm font-medium">12</div>
@@ -52,10 +54,10 @@ export default function WorkoutSession({ workout, previousLog, onFinish, onBack 
             )
         },
         {
-            title: "Previous History",
+            title: t('tutorial_step3_title'),
             content: (
                 <div className="flex flex-col gap-3">
-                    <p>Your "Last" stats show what you did last time. They appear right below the inputs so you know what to beat!</p>
+                    <p>{t('tutorial_step3_content')}</p>
                     <div className="flex gap-4 justify-center py-2">
                         <div className="flex flex-col gap-1 w-20">
                             <div className="text-[10px] uppercase font-bold text-gray-500 text-center">KG</div>
@@ -195,7 +197,7 @@ export default function WorkoutSession({ workout, previousLog, onFinish, onBack 
                     className="bg-brand-primary hover:bg-brand-primary-dark text-black px-5 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 shadow-sm transition-colors"
                 >
                     <Save size={18} />
-                    <span>Finish</span>
+                    <span>{t('session_finish')}</span>
                 </button>
             </div>
 
@@ -207,7 +209,7 @@ export default function WorkoutSession({ workout, previousLog, onFinish, onBack 
                             <div className="mb-4">
                                 <h3 className="text-lg font-bold text-gray-100">{exercise.name}</h3>
                                 <div className="flex gap-2 text-xs text-gray-400 font-medium uppercase tracking-wider mt-1">
-                                    <span className="bg-brand-gray px-2 py-0.5 rounded">{exercise.sets} Sets</span>
+                                    <span className="bg-brand-gray px-2 py-0.5 rounded">{exercise.sets} {t('session_sets')}</span>
                                     <span className="bg-brand-gray px-2 py-0.5 rounded text-brand-primary">{exercise.type}</span>
                                 </div>
                             </div>
@@ -215,11 +217,11 @@ export default function WorkoutSession({ workout, previousLog, onFinish, onBack 
                             <div className="space-y-2">
                                 {/* Header Row */}
                                 <div className="grid grid-cols-12 gap-2 text-xs font-bold text-gray-500 uppercase text-center mb-2 px-2">
-                                    <div className="col-span-1">Set</div>
-                                    <div className="col-span-3">Target</div>
-                                    <div className="col-span-2">Rest</div>
-                                    <div className="col-span-2">Kg</div>
-                                    <div className="col-span-2">Reps</div>
+                                    <div className="col-span-1">{t('session_set')}</div>
+                                    <div className="col-span-3">{t('session_target')}</div>
+                                    <div className="col-span-2">{t('session_rest')}</div>
+                                    <div className="col-span-2">{t('session_kg')}</div>
+                                    <div className="col-span-2">{t('session_reps')}</div>
                                     <div className="col-span-2"></div>
                                 </div>
 
@@ -269,7 +271,7 @@ export default function WorkoutSession({ workout, previousLog, onFinish, onBack 
                                                 />
                                                 {prevStats && (
                                                     <span className="text-[10px] text-gray-500 text-center">
-                                                        {prevStats.reps} Reps
+                                                        {prevStats.reps} {t('session_reps')}
                                                     </span>
                                                 )}
                                             </div>
@@ -295,7 +297,7 @@ export default function WorkoutSession({ workout, previousLog, onFinish, onBack 
                                 </div>
                                 <div className="relative flex items-center justify-center">
                                     <div className="bg-brand-gray px-3 flex items-center gap-2 rounded-full border border-brand-border/20 py-1">
-                                        <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Rest</span>
+                                        <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">{t('session_rest')}</span>
                                         <span className="text-xs font-bold text-brand-lime">{exercise.restAfter}s</span>
                                     </div>
                                 </div>
@@ -310,7 +312,7 @@ export default function WorkoutSession({ workout, previousLog, onFinish, onBack 
             <TutorialModal
                 isOpen={showTutorial}
                 onClose={handleCloseTutorial}
-                title="How to use Session Logger"
+                title={t('tutorial_title')}
                 steps={tutorialSteps}
             />
         </div>

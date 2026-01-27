@@ -1,6 +1,9 @@
 import React from 'react';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function LoadingScreen() {
+    const { t } = useLanguage();
+
     return (
         <div className="flex flex-col items-center justify-center min-h-screen relative overflow-hidden bg-brand-dark">
             {/* Background Decorations */}
@@ -15,7 +18,7 @@ export default function LoadingScreen() {
                         <div className="w-8 h-8 bg-brand-primary/20 rounded-full animate-pulse"></div>
                     </div>
                 </div>
-                <h2 className="text-xl font-bold text-white animate-pulse">Loading Gym Tracker...</h2>
+                <h2 className="text-xl font-bold text-white animate-pulse">{t('loading_app')}</h2>
             </div>
         </div>
     );

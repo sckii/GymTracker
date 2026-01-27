@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { X, ChevronRight, ChevronLeft } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function TutorialModal({ isOpen, onClose, title, steps }) {
+    const { t } = useLanguage();
     const [currentStep, setCurrentStep] = useState(0);
 
     if (!isOpen) return null;
@@ -59,14 +61,15 @@ export default function TutorialModal({ isOpen, onClose, title, steps }) {
                         className={`text-gray-400 hover:text-white text-sm font-medium px-3 py-2 transition-colors flex items-center gap-1 ${currentStep === 0 ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
                     >
                         <ChevronLeft size={16} />
-                        Back
+                        <ChevronLeft size={16} />
+                        {t('tutorial_back')}
                     </button>
 
                     <button
                         onClick={handleNext}
                         className="bg-brand-primary hover:bg-brand-primary-mid text-black px-4 py-2 rounded-lg font-bold text-sm flex items-center gap-1.5 shadow-sm transition-all active:scale-95"
                     >
-                        {currentStep === steps.length - 1 ? 'Got it!' : 'Next'}
+                        {currentStep === steps.length - 1 ? t('tutorial_got_it') : t('tutorial_next')}
                         {currentStep < steps.length - 1 && <ChevronRight size={16} />}
                     </button>
                 </div>

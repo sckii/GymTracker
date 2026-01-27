@@ -1,12 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { ChevronDown, Check } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
-export default function CustomDropdown({ label, options, value, onChange, disabled, placeholder = "Select...", containerClass = "flex-1 min-w-[140px]" }) {
+export default function CustomDropdown({ label, options, value, onChange, disabled, placeholder, containerClass = "flex-1 min-w-[140px]" }) {
+    const { t } = useLanguage();
     const [isOpen, setIsOpen] = useState(false);
     const triggerRef = useRef(null);
     const menuRef = useRef(null);
     const [coords, setCoords] = useState({ top: 0, left: 0, width: 0 });
+
+    const displayPlaceholder = placeholder || t('dropdown_select');
 
     // Handle Closing
     useEffect(() => {
@@ -16,9 +20,11 @@ export default function CustomDropdown({ label, options, value, onChange, disabl
             setIsOpen(false);
         };
 
-        const handleScroll = () => {
-            // Close on scroll to prevent detached floating menu
-            if (isOpen) setIsOpen(false);
+        const handleScroll = (event) => {
+            // Close on scroll to prevent detached floating menu, UNLESS scrolling inside the menu itself
+            if (isOpen && menuRef.current && !menuRef.current.contains(event.target)) {
+                setIsOpen(false);
+            }
         };
 
         if (isOpen) {
@@ -63,7 +69,7 @@ export default function CustomDropdown({ label, options, value, onChange, disabl
                 className={`w-full flex items-center justify-between bg-brand-light-gray border ${isOpen ? 'border-brand-primary ring-1 ring-brand-primary/50' : 'border-brand-border'} text-gray-100 text-sm rounded-lg px-3 py-2 outline-none transition-all ${disabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-brand-border/30 cursor-pointer'}`}
             >
                 <span className="truncate max-w-[250px] text-left">
-                    {selectedOption ? selectedOption.label : placeholder}
+                    {selectedOption ? selectedOption.label : displayPlaceholder}
                 </span>
                 <ChevronDown size={16} className={`text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
             </button>
@@ -81,7 +87,7 @@ export default function CustomDropdown({ label, options, value, onChange, disabl
                 >
                     <div className="p-1 flex flex-col gap-0.5">
                         {options.length === 0 ? (
-                            <div className="px-3 py-2 text-sm text-gray-500 text-center">No options</div>
+                            <div className="px-3 py-2 text-sm text-gray-500 text-center">{t('dropdown_no_options')}</div>
                         ) : (
                             options.map((option) => (
                                 <button

@@ -1,8 +1,11 @@
 import React from 'react';
 import ExerciseCard from './ExerciseCard';
 import { Plus } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function WorkoutView({ workout, setWorkouts, isReadOnly }) {
+    const { t } = useLanguage();
+
     const updateExercise = (exerciseId, newData) => {
         setWorkouts(prev => prev.map(w => {
             if (w.id !== workout.id) return w;
@@ -48,7 +51,7 @@ export default function WorkoutView({ workout, setWorkouts, isReadOnly }) {
                     className={`text-xl font-bold mb-2 bg-transparent border-none outline-none text-gray-100 placeholder-gray-600 w-full ${isReadOnly ? 'text-gray-500' : ''}`}
                     value={workout.name}
                     onChange={(e) => updateWorkoutName(e.target.value)}
-                    placeholder="Workout Name"
+                    placeholder={t('workout_name_placeholder')}
                 />
             </div>
 
@@ -72,7 +75,7 @@ export default function WorkoutView({ workout, setWorkouts, isReadOnly }) {
                         <div className="bg-brand-light-gray p-1 rounded-full group-hover:bg-brand-primary group-hover:text-black transition-colors">
                             <Plus size={20} />
                         </div>
-                        Add Exercise
+                        {t('btn_add_exercise')}
                     </button>
                 )}
             </div>

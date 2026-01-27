@@ -16,6 +16,7 @@ import LoginScreen from './components/LoginScreen';
 import UserProfile from './components/UserProfile';
 import LoadingScreen from './components/LoadingScreen';
 import TestDataGenerator from './components/TestDataGenerator';
+import { useLanguage } from './context/LanguageContext';
 
 
 import { SUBSCRIPTION_PLANS, DEFAULT_PLAN } from './config/subscriptionPlans';
@@ -23,6 +24,7 @@ import { SUBSCRIPTION_PLANS, DEFAULT_PLAN } from './config/subscriptionPlans';
 const BASE_API_URL = 'https://gymtracker-api.sckii.com';
 
 function App() {
+  const { t } = useLanguage();
   const [session, setSession] = useState(null);
   const [view, setView] = useState('home'); // 'home', 'plan-list', 'plan-editor', 'start-workout', 'workout-session', 'stats'
   const [plans, setPlans] = useState([]);
@@ -57,7 +59,7 @@ function App() {
     isOpen: false,
     title: '',
     message: '',
-    confirmText: 'Delete',
+    confirmText: t('confirm_delete_btn'),
     onConfirm: () => { }
   });
 
@@ -77,7 +79,7 @@ function App() {
     }
 
     if (plan.id === 'free') {
-      showNotification('To cancel your subscription, please manage it in the Stripe Portal (Coming Soon).', 'info');
+      showNotification(t('sub_downgrade_info') || 'To cancel your subscription, please manage it in the Stripe Portal (Coming Soon).', 'info');
       return;
     }
 
@@ -86,7 +88,7 @@ function App() {
       return;
     }
 
-    showNotification('Preparing checkout...', 'info');
+    showNotification(t('sub_checkout_preparing') || 'Preparing checkout...', 'info');
 
     try {
       const { data: { session: currentSession } } = await supabase.auth.getSession();
@@ -124,13 +126,13 @@ function App() {
 
     } catch (err) {
       console.error('Checkout error:', err);
-      showNotification('Failed to start checkout. Please try again.', 'error');
+      showNotification(t('error_checkout'), 'error');
     }
   };
 
   const handleManageSubscription = async () => {
     try {
-      showNotification('Redirecting to billing portal...', 'info');
+      showNotification(t('sub_portal_redirect') || 'Redirecting to billing portal...', 'info');
       const { data: { session: currentSession } } = await supabase.auth.getSession();
       if (!currentSession?.access_token) throw new Error('No active session');
 
@@ -155,19 +157,19 @@ function App() {
       }
     } catch (err) {
       console.error('Portal error:', err);
-      showNotification('Failed to open billing portal', 'error');
+      showNotification(t('error_portal'), 'error');
     }
   };
 
   const handleCancelSubscription = async () => {
     setConfirmDialog({
       isOpen: true,
-      title: 'Cancel Subscription',
-      message: 'Are you sure you want to cancel? If you subscribed less than 7 days ago, you will receive a full refund immediately. Otherwise, you will be redirected to the management portal.',
-      confirmText: "Cancel Subscription",
+      title: t('confirm_cancel_sub_title'),
+      message: t('confirm_cancel_sub_msg'),
+      confirmText: t('confirm_cancel_sub_btn'),
       onConfirm: async () => {
         try {
-          showNotification('Processing cancellation...', 'info');
+          showNotification(t('sub_processing_cancel') || 'Processing cancellation...', 'info');
           const { data: { session: currentSession } } = await supabase.auth.getSession();
           if (!currentSession?.access_token) throw new Error('No active session');
 
@@ -185,12 +187,12 @@ function App() {
           if (!response.ok) throw new Error(data.error || 'Network response was not ok');
 
           if (data?.refunded) {
-            showNotification('Subscription cancelled and refunded successfully!', 'success');
+            showNotification(t('notif_sub_refunded'), 'success');
             window.location.reload();
           } else if (data?.url) {
             window.location.href = data.url;
           } else {
-            showNotification(data?.message || 'Subscription cancelled', 'success');
+            showNotification(data?.message || t('notif_sub_cancelled'), 'success');
             window.location.reload();
           }
           setConfirmDialog(prev => ({ ...prev, isOpen: false }));
@@ -228,7 +230,7 @@ function App() {
           confirmText: 'Import',
           onConfirm: () => {
             addPlan(importedPlan);
-            showNotification(`Plan "${importedPlan.name}" imported successfully!`, 'success');
+            showNotification(t('notif_import_link_success', { planName: importedPlan.name }), 'success');
             setView('plan-list');
 
             // Clean URL
@@ -237,7 +239,7 @@ function App() {
             setConfirmDialog(prev => ({ ...prev, isOpen: false }));
           },
           onCancel: () => {
-            showNotification('Import cancelled', 'info');
+            showNotification(t('notif_import_cancelled'), 'info');
             // Clean URL
             const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
             window.history.pushState({ path: newUrl }, '', newUrl);
@@ -245,7 +247,7 @@ function App() {
           }
         });
       } else {
-        showNotification('Invalid or corrupted share link.', 'error');
+        showNotification(t('notif_invalid_link'), 'error');
         // Clean URL anyway to avoid loops if persistent
         const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
         window.history.pushState({ path: newUrl }, '', newUrl);
@@ -321,13 +323,13 @@ function App() {
   const createPlan = async () => {
     // Check Subscription Limits
     if (plans.length >= userPlan.maxPlans) {
-      showNotification(`Plan limit reached (${userPlan.maxPlans}) for ${userPlan.name} tier. Upgrade to create more.`, 'error');
+      showNotification(t('warn_plan_limit', { limit: userPlan.maxPlans, tier: userPlan.name }), 'error');
       return;
     }
 
     const newPlan = {
       id: generateUUID(),
-      name: 'New Training Plan',
+      name: t('default_plan_name'),
       description: '',
       startDate: new Date().toISOString().split('T')[0],
       duration: '',
@@ -335,7 +337,7 @@ function App() {
       age: '',
       isActive: false,
       workouts: [
-        { id: '1', name: 'Workout A', exercises: [] }
+        { id: '1', name: t('default_workout_name'), exercises: [] }
       ]
     };
 
@@ -360,7 +362,7 @@ function App() {
       });
 
       if (error) {
-        showNotification('Error creating plan in cloud', 'error');
+        showNotification(t('error_create_plan'), 'error');
         console.error(error);
       }
     }
@@ -369,7 +371,7 @@ function App() {
   const addPlan = async (newPlan) => {
     // Check Subscription Limits
     if (plans.length >= userPlan.maxPlans) {
-      showNotification(`Plan limit reached ${userPlan.maxPlans} for ${userPlan.name} tier. Upgrade to import more.`, 'error');
+      showNotification(t('warn_plan_limit', { limit: userPlan.maxPlans, tier: userPlan.name }), 'error');
       return "limit_reached";
     }
 
@@ -394,7 +396,7 @@ function App() {
       });
 
       if (error) {
-        showNotification('Error importing plan', 'error');
+        showNotification(t('notif_import_error'), 'error');
         console.error(error);
       }
     }
@@ -441,11 +443,11 @@ function App() {
 
     setConfirmDialog({
       isOpen: true,
-      title: hasLogs ? 'Delete Plan & History?' : 'Delete Plan?',
+      title: hasLogs ? t('confirm_delete_history_title') : t('confirm_delete_plan_title'),
       message: hasLogs
-        ? `This plan has ${planLogs.length} workout log(s). Deleting this plan will also remove all its history. Are you sure?`
-        : 'Are you sure you want to delete this plan? This action cannot be undone.',
-      confirmText: hasLogs ? 'Delete All' : 'Delete',
+        ? t('confirm_delete_history_msg', { count: planLogs.length })
+        : t('confirm_delete_plan_msg'),
+      confirmText: hasLogs ? t('confirm_delete_all_btn') : t('confirm_delete_btn'),
       onConfirm: async () => {
         setConfirmDialog(prev => ({ ...prev, isOpen: false }));
 
@@ -455,7 +457,7 @@ function App() {
             const { error: logsError } = await supabase.from('logs').delete().eq('plan_id', planId);
             if (logsError) {
               console.error('Logs delete error', logsError);
-              showNotification('Failed to delete logs: ' + logsError.message, 'error');
+              showNotification(t('error_delete_logs', { error: logsError.message }), 'error');
               return;
             }
             // Also update local state
@@ -467,16 +469,16 @@ function App() {
 
           if (error) {
             console.error('Error deleting plan:', error);
-            showNotification(`Failed to delete plan: ${error.message}`, 'error');
+            showNotification(t('error_delete_plan', { error: error.message }), 'error');
           } else {
             setPlans(prev => prev.filter(p => p.id !== planId));
             if (selectedPlanId === planId) setSelectedPlanId(null);
-            showNotification(hasLogs ? 'Plan and history deleted successfully' : 'Plan deleted successfully', 'success');
+            showNotification(hasLogs ? t('notif_plan_history_deleted') : t('notif_plan_deleted'), 'success');
           }
         } else {
           setPlans(prev => prev.filter(p => p.id !== planId));
           if (selectedPlanId === planId) setSelectedPlanId(null);
-          showNotification('Plan deleted locally', 'success');
+          showNotification(t('notif_plan_deleted'), 'success');
         }
       }
     });
@@ -500,15 +502,15 @@ function App() {
       // Remove locally immediately
       setLogs(prev => prev.slice(0, -1));
 
-      showNotification(`Log limit reached (${userPlan.maxLogs}). Oldest log removed.`, 'info');
+      showNotification(t('warn_log_limit', { limit: userPlan.maxLogs }), 'info');
     }
 
     const newLogId = generateUUID();
     const logDate = new Date().toISOString();
 
     const newLogData = {
-      planName: activePlan ? activePlan.name : 'Unknown Plan',
-      workoutName: activeSessionWorkout ? activeSessionWorkout.name : 'Unknown Workout',
+      planName: activePlan ? activePlan.name : t('plan_untitled'),
+      workoutName: activeSessionWorkout ? activeSessionWorkout.name : t('default_workout_name'),
       duration: duration,
       data: sessionLogs,
       exercises: activeSessionWorkout.exercises.map(ex => ({
@@ -530,7 +532,7 @@ function App() {
     };
 
     setLogs(prev => [newLogForState, ...prev]);
-    showNotification('Workout finished! Great job!', 'success');
+    showNotification(t('notif_workout_finished'), 'success');
     setActiveSessionWorkout(null);
     setView('home');
 
@@ -549,7 +551,7 @@ function App() {
       });
       if (error) {
         console.error('Error saving log:', error);
-        showNotification('Error saving log to cloud', 'error');
+        showNotification(t('error_save_log'), 'error');
       }
     }
   };
@@ -661,7 +663,7 @@ function App() {
         isOpen={confirmDialog.isOpen}
         title={confirmDialog.title}
         message={confirmDialog.message}
-        confirmText={confirmDialog.confirmText || "Delete"}
+        confirmText={confirmDialog.confirmText || t('confirm_delete_btn')}
         onConfirm={confirmDialog.onConfirm}
         onCancel={confirmDialog.onCancel || (() => setConfirmDialog(prev => ({ ...prev, isOpen: false })))}
       />

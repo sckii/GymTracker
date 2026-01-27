@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { LogOut, User, Crown } from 'lucide-react';
 import SubscriptionModal from './SubscriptionModal';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function UserProfile({ user, currentPlan, onUpgrade, onManage, onCancel }) {
+    const { t } = useLanguage();
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     if (!user) return null;
@@ -36,7 +38,7 @@ export default function UserProfile({ user, currentPlan, onUpgrade, onManage, on
                     className={`text-[10px] font-bold px-2 py-0.5 rounded-full border flex items-center gap-1 uppercase tracking-wider transition-transform hover:scale-105 ${badgeColor}`}
                 >
                     {currentPlan?.id === 'pro' && <Crown size={10} fill="currentColor" />}
-                    {currentPlan?.name || 'FREE'}
+                    {currentPlan?.name || t('profile_free')}
                 </button>
 
                 <div className="flex items-center gap-3">
@@ -53,7 +55,7 @@ export default function UserProfile({ user, currentPlan, onUpgrade, onManage, on
                     )}
 
                     <div className="hidden sm:block">
-                        <p className="text-xs text-gray-400 font-bold uppercase tracking-wider text-left">Welcome back,</p>
+                        <p className="text-xs text-gray-400 font-bold uppercase tracking-wider text-left">{t('profile_welcome')}</p>
                         <div className="flex items-center gap-2">
                             <p className="text-sm font-bold text-white max-w-[150px] truncate">{displayName || 'User'}</p>
                         </div>

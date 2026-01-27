@@ -1,6 +1,9 @@
 import React from 'react';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function PlanInfoView({ plan, updatePlan }) {
+    const { t } = useLanguage();
+
     const handleInputChange = (field, value) => {
         updatePlan({ ...plan, [field]: value });
     };
@@ -14,8 +17,8 @@ export default function PlanInfoView({ plan, updatePlan }) {
                 {/* Active Toggle */}
                 <div className="flex items-center justify-between bg-brand-light-gray border overflow-y-auto border-brand-border rounded-xl p-4">
                     <div className="flex flex-col">
-                        <span className="font-bold text-gray-200">Plan Status</span>
-                        <span className="text-sm text-gray-500">{plan.isActive ? 'Active (Read-Only)' : 'Draft (Editable)'}</span>
+                        <span className="font-bold text-gray-200">{t('label_plan_status')}</span>
+                        <span className="text-sm text-gray-500">{plan.isActive ? t('status_active') : t('status_draft')}</span>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
                         <input
@@ -29,22 +32,22 @@ export default function PlanInfoView({ plan, updatePlan }) {
                 </div>
 
                 <div className="flex flex-col gap-2">
-                    <label className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Plan Name</label>
+                    <label className="text-sm font-semibold text-gray-500 uppercase tracking-wider">{t('label_plan_name')}</label>
                     <input
                         disabled={isReadOnly}
                         className={`text-xl font-bold bg-brand-light-gray border border-brand-border rounded-xl p-4 outline-none text-gray-100 placeholder-gray-600 w-full focus:border-brand-lime focus:ring-1 focus:ring-brand-lime transition-all ${isReadOnly ? 'bg-brand-gray text-gray-500 opacity-60' : ''}`}
-                        placeholder="e.g. Summer Cut"
+                        placeholder={t('placeholder_plan_name')}
                         value={plan.name}
                         onChange={(e) => handleInputChange('name', e.target.value)}
                     />
                 </div>
 
                 <div className="flex flex-col gap-2">
-                    <label className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Description</label>
+                    <label className="text-sm font-semibold text-gray-500 uppercase tracking-wider">{t('label_description')}</label>
                     <textarea
                         disabled={isReadOnly}
                         className={`w-full bg-brand-light-gray border border-brand-border rounded-xl p-4 text-base text-gray-300 outline-none resize-none focus:border-brand-lime focus:ring-1 focus:ring-brand-lime transition-all ${isReadOnly ? 'bg-brand-gray text-gray-500 opacity-60' : ''}`}
-                        placeholder="Description (optional)"
+                        placeholder={t('placeholder_description')}
                         rows={4}
                         value={plan.description}
                         onChange={(e) => handleInputChange('description', e.target.value)}
@@ -53,7 +56,7 @@ export default function PlanInfoView({ plan, updatePlan }) {
 
                 <div className="grid grid-cols-2 gap-4">
                     <div className="flex flex-col gap-2">
-                        <label className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Start Date</label>
+                        <label className="text-sm font-semibold text-gray-500 uppercase tracking-wider">{t('label_start_date')}</label>
                         <input
                             disabled={isReadOnly}
                             type="date"
@@ -63,17 +66,17 @@ export default function PlanInfoView({ plan, updatePlan }) {
                         />
                     </div>
                     <div className="flex flex-col gap-2">
-                        <label className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Duration</label>
+                        <label className="text-sm font-semibold text-gray-500 uppercase tracking-wider">{t('label_duration')}</label>
                         <input
                             disabled={isReadOnly}
                             className={`bg-brand-light-gray border border-brand-border rounded-xl p-3 text-sm text-gray-300 outline-none focus:border-brand-lime transition-all ${isReadOnly ? 'bg-brand-gray text-gray-500 opacity-60' : ''}`}
-                            placeholder="e.g. 8 weeks"
+                            placeholder={t('placeholder_duration')}
                             value={plan.duration}
                             onChange={(e) => handleInputChange('duration', e.target.value)}
                         />
                     </div>
                     <div className="flex flex-col gap-2">
-                        <label className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Weight (kg)</label>
+                        <label className="text-sm font-semibold text-gray-500 uppercase tracking-wider">{t('label_weight')}</label>
                         <input
                             disabled={isReadOnly}
                             className={`bg-brand-light-gray border border-brand-border rounded-xl p-3 text-sm text-gray-300 outline-none focus:border-brand-lime transition-all ${isReadOnly ? 'bg-brand-gray text-gray-500 opacity-60' : ''}`}
@@ -83,7 +86,7 @@ export default function PlanInfoView({ plan, updatePlan }) {
                         />
                     </div>
                     <div className="flex flex-col gap-2">
-                        <label className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Age</label>
+                        <label className="text-sm font-semibold text-gray-500 uppercase tracking-wider">{t('label_age')}</label>
                         <input
                             disabled={isReadOnly}
                             className={`bg-brand-light-gray border border-brand-border rounded-xl p-3 text-sm text-gray-300 outline-none focus:border-brand-lime transition-all ${isReadOnly ? 'bg-brand-gray text-gray-500 opacity-60' : ''}`}

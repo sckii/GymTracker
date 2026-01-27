@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { Loader2 } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function LoginScreen() {
+    const { t } = useLanguage();
     const [loading, setLoading] = useState(false);
 
     const handleLogin = async () => {
@@ -37,7 +39,7 @@ export default function LoginScreen() {
                             GYM <span className="text-brand-primary font-sans font-bold">TRACKER</span>
                         </h1>
                     </div>
-                    <p className="text-gray-400 font-medium mt-3">Sign in to track your workouts</p>
+                    <p className="text-gray-400 font-medium mt-3">{t('login_subtitle')}</p>
                 </div>
 
                 <button
@@ -56,7 +58,7 @@ export default function LoginScreen() {
                         </svg>
                     )}
                     <span className="group-hover:text-black transition-colors">
-                        {loading ? 'Connecting...' : 'Sign in with Google'}
+                        {loading ? t('login_connecting') : t('login_google')}
                     </span>
                 </button>
             </div>

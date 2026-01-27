@@ -1,8 +1,10 @@
 import React from 'react';
 import { SUBSCRIPTION_PLANS } from '../config/subscriptionPlans';
 import { Check, X, Star } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function SubscriptionModal({ isOpen, onClose, currentPlanId, onUpgrade, onManage, onCancel }) {
+    const { t } = useLanguage();
     if (!isOpen) return null;
 
     const plans = Object.values(SUBSCRIPTION_PLANS);
@@ -45,7 +47,7 @@ export default function SubscriptionModal({ isOpen, onClose, currentPlanId, onUp
                             {/* ... existing plan content ... */}
                             {isPro && (
                                 <div className="absolute top-4 transform -translate-y-1/2 bg-gradient-to-r from-brand-primary to-rose-500 text-black text-xs font-bold px-4 py-1 rounded-full shadow-lg flex items-center gap-1">
-                                    <Star size={12} fill="currentColor" /> MOST POPULAR
+                                    <Star size={12} fill="currentColor" /> {t('sub_most_popular')}
                                 </div>
                             )}
 
@@ -60,7 +62,7 @@ export default function SubscriptionModal({ isOpen, onClose, currentPlanId, onUp
                                         <Check size={14} strokeWidth={3} />
                                     </div>
                                     <span className={`text-sm ${!isPro ? 'text-gray-400' : 'text-gray-300'}`}>
-                                        {plan.maxPlans === Infinity ? 'Unlimited' : plan.maxPlans} Plans
+                                        {plan.maxPlans === Infinity ? t('sub_unlimited') : plan.maxPlans} {t('sub_plans')}
                                     </span>
                                 </div>
                                 <div className="flex items-center gap-3">
@@ -68,7 +70,7 @@ export default function SubscriptionModal({ isOpen, onClose, currentPlanId, onUp
                                         <Check size={14} strokeWidth={3} />
                                     </div>
                                     <span className={`text-sm ${!isPro ? 'text-gray-400' : 'text-gray-300'}`}>
-                                        {plan.maxLogs === Infinity ? 'Unlimited' : plan.maxLogs} Workout Logs
+                                        {plan.maxLogs === Infinity ? t('sub_unlimited') : plan.maxLogs} {t('sub_logs')}
                                     </span>
                                 </div>
                                 <div className="flex items-center gap-3">
@@ -76,7 +78,7 @@ export default function SubscriptionModal({ isOpen, onClose, currentPlanId, onUp
                                         <Check size={14} strokeWidth={3} />
                                     </div>
                                     <span className={`text-sm ${!isPro ? 'text-gray-400' : 'text-gray-300'}`}>
-                                        Advanced Stats
+                                        {t('sub_stats')}
                                     </span>
                                 </div>
                             </div>
@@ -103,7 +105,7 @@ export default function SubscriptionModal({ isOpen, onClose, currentPlanId, onUp
                                             : 'bg-white text-black hover:bg-gray-100'
                                     }`}
                             >
-                                {isCurrent ? 'Current Plan' : (plan.comingSoon ? 'Coming Soon' : (plan.id === 'free' && currentPlanId !== 'free' ? 'Downgrade to Free' : `Upgrade to ${plan.name}`))}
+                                {isCurrent ? t('sub_current') : (plan.comingSoon ? t('sub_soon') : (plan.id === 'free' && currentPlanId !== 'free' ? t('sub_downgrade') : `${t('sub_upgrade')} ${plan.name}`))}
                             </button>
                         </div>
                     );
@@ -119,13 +121,13 @@ export default function SubscriptionModal({ isOpen, onClose, currentPlanId, onUp
                                 onClick={onManage}
                                 className="px-4 py-2 bg-brand-light-gray hover:bg-brand-border text-gray-200 rounded-xl text-sm font-semibold transition-colors"
                             >
-                                Manage Subscription
+                                {t('sub_manage')}
                             </button>
                             <button
                                 onClick={onCancel}
                                 className="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-xl text-sm font-semibold transition-colors"
                             >
-                                Cancel Subscription
+                                {t('sub_cancel')}
                             </button>
                         </div>
                     </div>

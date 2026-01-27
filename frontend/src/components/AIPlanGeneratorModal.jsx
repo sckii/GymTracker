@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import { generateWorkoutPlan } from '../lib/gemini';
 import { X, Sparkles, Loader, AlertCircle } from 'lucide-react';
 import CustomDropdown from './CustomDropdown';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function AIPlanGeneratorModal({ isOpen, onClose, onPlanGenerated }) {
+    const { t } = useLanguage();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [apiKey, setApiKey] = useState(import.meta.env.VITE_GEMINI_API_KEY || '');
@@ -50,35 +52,29 @@ export default function AIPlanGeneratorModal({ isOpen, onClose, onPlanGenerated 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
             <div className="bg-brand-gray rounded-3xl w-full max-w-lg shadow-2xl animate-slide-up border border-brand-border relative overflow-hidden">
-
-                {/* Header */}
                 <div className="bg-brand-light-gray/50 p-6 border-b border-brand-border/50 flex justify-between items-center relative">
                     <div className="flex items-center gap-3">
                         <div className="p-2 bg-purple-500/20 rounded-xl">
                             <Sparkles className="text-purple-400" size={24} />
                         </div>
-                        <h2 className="text-xl font-bold text-white">AI Coach Generator</h2>
+                        <h2 className="text-xl font-bold text-white">{t('ai_modal_title')}</h2>
                     </div>
                     <button onClick={onClose} className="p-2 hover:bg-brand-light-gray rounded-full text-gray-400 transition-colors">
                         <X size={20} />
                     </button>
-
-                    {/* Background decoration */}
                     <div className="absolute -top-10 -right-10 w-32 h-32 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
                 </div>
 
                 <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto custom-scrollbar">
-
-                    {/* API Key Input (if not set in env) */}
                     {!import.meta.env.VITE_GEMINI_API_KEY && (
                         <div className="bg-brand-light-gray/30 p-4 rounded-xl border border-dashed border-gray-700">
-                            <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Gemini API Key</label>
+                            <label className="block text-xs font-bold text-gray-400 uppercase mb-2">{t('ai_modal_api_label')}</label>
                             <input
                                 type="password"
                                 value={apiKey}
                                 onChange={(e) => setApiKey(e.target.value)}
                                 className="w-full bg-brand-gray border border-brand-border rounded-lg p-3 text-white text-sm focus:border-brand-primary outline-none transition-colors"
-                                placeholder="Paste your API Key here..."
+                                placeholder={t('ai_modal_api_placeholder')}
                             />
                             <p className="text-[10px] text-gray-500 mt-2">
                                 Review your <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" className="text-brand-primary hover:underline">Google AI Studio</a> dashboard to get a key.
@@ -89,14 +85,14 @@ export default function AIPlanGeneratorModal({ isOpen, onClose, onPlanGenerated 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {/* Goal */}
                         <CustomDropdown
-                            label="Goal"
+                            label={t('ai_modal_goal')}
                             options={[
-                                { value: 'Hypertrophy (Muscle Gain)', label: 'Hypertrophy (Muscle Gain)' },
-                                { value: 'Strength (Powerlifting)', label: 'Strength (Powerlifting)' },
-                                { value: 'Fat Loss (Cutting)', label: 'Fat Loss (Cutting)' },
-                                { value: 'Endurance / Cardio', label: 'Endurance / Cardio' },
-                                { value: 'Athletic Performance', label: 'Athletic Performance' },
-                                { value: 'Flexibility & Mobility', label: 'Flexibility & Mobility' }
+                                { value: 'Hypertrophy (Muscle Gain)', label: t('goal_hypertrophy') },
+                                { value: 'Strength (Powerlifting)', label: t('goal_strength') },
+                                { value: 'Fat Loss (Cutting)', label: t('goal_fat_loss') },
+                                { value: 'Endurance / Cardio', label: t('goal_endurance') },
+                                { value: 'Athletic Performance', label: t('goal_athletic') },
+                                { value: 'Flexibility & Mobility', label: t('goal_mobility') }
                             ]}
                             value={formData.goal}
                             onChange={(val) => handleChange('goal', val)}
@@ -105,15 +101,15 @@ export default function AIPlanGeneratorModal({ isOpen, onClose, onPlanGenerated 
 
                         {/* Focus */}
                         <CustomDropdown
-                            label="Focus Area"
+                            label={t('ai_modal_focus')}
                             options={[
-                                { value: 'Full Body', label: 'Full Body' },
-                                { value: 'Upper Body', label: 'Upper Body' },
-                                { value: 'Lower Body', label: 'Lower Body' },
-                                { value: 'Push / Pull / Legs', label: 'Push / Pull / Legs' },
-                                { value: 'Chest & Back', label: 'Chest & Back' },
-                                { value: 'Arms & Shoulders', label: 'Arms & Shoulders' },
-                                { value: 'Glutes & Legs', label: 'Glutes & Legs' }
+                                { value: 'Full Body', label: t('focus_full_body') },
+                                { value: 'Upper Body', label: t('focus_upper') },
+                                { value: 'Lower Body', label: t('focus_lower') },
+                                { value: 'Push / Pull / Legs', label: t('focus_ppl') },
+                                { value: 'Chest & Back', label: t('focus_chest_back') },
+                                { value: 'Arms & Shoulders', label: t('focus_arms_shoulders') },
+                                { value: 'Glutes & Legs', label: t('focus_glutes_legs') }
                             ]}
                             value={formData.focus}
                             onChange={(val) => handleChange('focus', val)}
@@ -122,11 +118,11 @@ export default function AIPlanGeneratorModal({ isOpen, onClose, onPlanGenerated 
 
                         {/* Level */}
                         <CustomDropdown
-                            label="Experience Level"
+                            label={t('ai_modal_level')}
                             options={[
-                                { value: 'Beginner (0-6 months)', label: 'Beginner (0-6 months)' },
-                                { value: 'Intermediate (6m - 2 years)', label: 'Intermediate (6m - 2 years)' },
-                                { value: 'Advanced (2+ years)', label: 'Advanced (2+ years)' }
+                                { value: 'Beginner (0-6 months)', label: t('level_beginner') },
+                                { value: 'Intermediate (6m - 2 years)', label: t('level_intermediate') },
+                                { value: 'Advanced (2+ years)', label: t('level_advanced') }
                             ]}
                             value={formData.level}
                             onChange={(val) => handleChange('level', val)}
@@ -135,12 +131,12 @@ export default function AIPlanGeneratorModal({ isOpen, onClose, onPlanGenerated 
 
                         {/* Equipment */}
                         <CustomDropdown
-                            label="Equipment"
+                            label={t('ai_modal_equipment')}
                             options={[
-                                { value: 'Full Gym', label: 'Full Gym' },
-                                { value: 'Home Gym (Dumbbells Only)', label: 'Home Gym (Dumbbells Only)' },
-                                { value: 'Bodyweight Only', label: 'Bodyweight Only' },
-                                { value: 'Resistance Bands', label: 'Resistance Bands' }
+                                { value: 'Full Gym', label: t('equip_full_gym') },
+                                { value: 'Home Gym (Dumbbells Only)', label: t('equip_home_gym') },
+                                { value: 'Bodyweight Only', label: t('equip_bodyweight') },
+                                { value: 'Resistance Bands', label: t('equip_bands') }
                             ]}
                             value={formData.equipment}
                             onChange={(val) => handleChange('equipment', val)}
@@ -149,7 +145,7 @@ export default function AIPlanGeneratorModal({ isOpen, onClose, onPlanGenerated 
 
                         {/* Days per Week */}
                         <div className="space-y-1">
-                            <label className="text-xs font-bold text-gray-400 uppercase">Days / Week</label>
+                            <label className="text-xs font-bold text-gray-400 uppercase">{t('ai_modal_days')}</label>
                             <input
                                 type="number"
                                 name="days"
@@ -163,7 +159,7 @@ export default function AIPlanGeneratorModal({ isOpen, onClose, onPlanGenerated 
 
                         {/* Time per Workout */}
                         <div className="space-y-1">
-                            <label className="text-xs font-bold text-gray-400 uppercase">Minutes / Session</label>
+                            <label className="text-xs font-bold text-gray-400 uppercase">{t('ai_modal_time')}</label>
                             <input
                                 type="number"
                                 name="time"
@@ -197,17 +193,17 @@ export default function AIPlanGeneratorModal({ isOpen, onClose, onPlanGenerated 
                         {loading ? (
                             <>
                                 <Loader size={20} className="animate-spin" />
-                                Designing your plan...
+                                {t('ai_modal_designing')}
                             </>
                         ) : (
                             <>
                                 <Sparkles size={20} fill="currentColor" className="text-yellow-300" />
-                                Generate Workout Plan
+                                {t('ai_modal_generate')}
                             </>
                         )}
                     </button>
                     <p className="text-center text-[10px] text-gray-500 mt-3">
-                        Powered by Gemini AI. Results may vary. Always review generated plans.
+                        {t('ai_modal_powered_by')}
                     </p>
                 </div>
 

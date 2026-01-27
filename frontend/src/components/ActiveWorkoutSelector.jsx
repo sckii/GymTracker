@@ -1,15 +1,17 @@
 import React from 'react';
 import { ChevronRight, Dumbbell } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function ActiveWorkoutSelector({ activePlan, onSelectWorkout }) {
+    const { t } = useLanguage();
     if (!activePlan) {
         return (
             <div className="flex flex-col items-center justify-center h-full text-center p-6 bg-brand-gray">
                 <div className="bg-brand-light-gray p-6 rounded-2xl shadow-sm border border-brand-border mb-4">
                     <Dumbbell size={48} className="text-gray-500 mx-auto mb-2" />
-                    <h3 className="text-xl font-bold text-gray-200 mb-2">No Active Plan</h3>
+                    <h3 className="text-xl font-bold text-gray-200 mb-2">{t('selector_no_plan')}</h3>
                     <p className="text-gray-500 max-w-xs mx-auto">
-                        Please go to "My Plans" and activate a training plan to start a workout.
+                        {t('selector_no_plan_desc')}
                     </p>
                 </div>
             </div>
@@ -19,8 +21,8 @@ export default function ActiveWorkoutSelector({ activePlan, onSelectWorkout }) {
     return (
         <div className="p-8 h-full flex flex-col">
             <div className="mb-8">
-                <h2 className="text-3xl font-bold text-gray-100 mb-2">Ready to train?</h2>
-                <p className="text-gray-400 text-lg">Select a workout from <span className="font-semibold text-brand-primary">{activePlan.name}</span></p>
+                <h2 className="text-3xl font-bold text-gray-100 mb-2">{t('selector_ready')}</h2>
+                <p className="text-gray-400 text-lg">{t('selector_select_from')} <span className="font-semibold text-brand-primary">{activePlan.name}</span></p>
             </div>
 
             <div className="grid gap-4">
@@ -37,7 +39,7 @@ export default function ActiveWorkoutSelector({ activePlan, onSelectWorkout }) {
                             <div>
                                 <h3 className="text-xl font-bold text-gray-100">{workout.name}</h3>
                                 <p className="text-sm text-gray-400 font-medium">
-                                    {workout.exercises.length} Exercises
+                                    {workout.exercises.length} {t('selector_exercises')}
                                 </p>
                             </div>
                         </div>

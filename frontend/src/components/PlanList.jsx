@@ -2,8 +2,10 @@ import React, { useRef, useState } from 'react';
 import { Plus, ArrowLeft, ChevronRight, Upload, Trash2, Download, Share2, FileText, Link as LinkIcon, X, Copy, Check, Sparkles } from 'lucide-react';
 import AIPlanGeneratorModal from './AIPlanGeneratorModal';
 import { generateShareLink, parseShareLink } from '../lib/share';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function PlanList({ plans, setView, setSelectedPlanId, createPlan, addPlan, deletePlan, showNotification, userPlan }) {
+    const { t } = useLanguage();
     const fileInputRef = useRef(null);
     const [activeModal, setActiveModal] = useState(null); // 'export', 'import', 'share-result', 'import-link', 'ai-generate'
     const [selectedPlanForExport, setSelectedPlanForExport] = useState(null);
@@ -30,14 +32,14 @@ export default function PlanList({ plans, setView, setSelectedPlanId, createPlan
                     return;
                 }
 
-                showNotification('Plan imported from link!', 'success');
+                showNotification(t('notif_import_link_success'), 'success');
                 setActiveModal(null);
                 setImportLinkInput('');
             } else {
-                showNotification('Invalid share link.', 'error');
+                showNotification(t('notif_invalid_link'), 'error');
             }
         } catch (e) {
-            showNotification('Invalid URL format.', 'error');
+            showNotification(t('error_invalid_url'), 'error');
         }
     };
 
@@ -46,8 +48,9 @@ export default function PlanList({ plans, setView, setSelectedPlanId, createPlan
         if (link) {
             setGeneratedLink(link);
             setActiveModal('share-result');
+            setActiveModal('share-result');
         } else {
-            showNotification('Error generating link', 'error');
+            showNotification(t('error_generating_link'), 'error');
         }
     };
 
@@ -55,11 +58,12 @@ export default function PlanList({ plans, setView, setSelectedPlanId, createPlan
         if (navigator.clipboard && navigator.clipboard.writeText) {
             navigator.clipboard.writeText(generatedLink).then(() => {
                 setHasCopied(true);
-                showNotification('Link copied to clipboard!', 'success');
+                showNotification(t('notif_copy_success'), 'success');
                 setTimeout(() => setHasCopied(false), 2000);
             }).catch(err => {
+            }).catch(err => {
                 console.error('Failed to copy: ', err);
-                showNotification('Failed to copy link.', 'error');
+                showNotification(t('notif_copy_error'), 'error');
             });
         } else {
             // Fallback for non-secure contexts (HTTP)
@@ -80,14 +84,14 @@ export default function PlanList({ plans, setView, setSelectedPlanId, createPlan
                 const successful = document.execCommand('copy');
                 if (successful) {
                     setHasCopied(true);
-                    showNotification('Link copied to clipboard!', 'success');
+                    showNotification(t('notif_copy_success'), 'success');
                     setTimeout(() => setHasCopied(false), 2000);
                 } else {
-                    showNotification('Failed to copy link.', 'error');
+                    showNotification(t('notif_copy_error'), 'error');
                 }
             } catch (err) {
                 console.error('Fallback: Oops, unable to copy', err);
-                showNotification('Failed to copy link.', 'error');
+                showNotification(t('error_copy_failed'), 'error');
             }
 
             document.body.removeChild(textArea);
@@ -196,12 +200,12 @@ export default function PlanList({ plans, setView, setSelectedPlanId, createPlan
             link.click();
             document.body.removeChild(link);
 
-            showNotification('Plan exported successfully!', 'success');
+            showNotification(t('notif_export_success'), 'success');
             setActiveModal(null);
 
         } catch (error) {
             console.error('Export Error:', error);
-            showNotification('Failed to export plan.', 'error');
+            showNotification(t('notif_export_error'), 'error');
         }
     };
 
@@ -211,7 +215,7 @@ export default function PlanList({ plans, setView, setSelectedPlanId, createPlan
 
         // Basic validation
         if (!headers.includes('PlanName') || !headers.includes('WorkoutName')) {
-            showNotification('Invalid CSV format. Missing required headers.', 'error');
+            showNotification(t('error_invalid_csv'), 'error');
             return null;
         }
 
@@ -357,12 +361,12 @@ export default function PlanList({ plans, setView, setSelectedPlanId, createPlan
                         return;
                     }
 
-                    showNotification('Plan imported successfully!', 'success');
+                    showNotification(t('notif_import_success'), 'success');
                     setActiveModal(null);
                 }
             } catch (error) {
                 console.error(error);
-                showNotification('Error importing plan.', 'error');
+                showNotification(t('notif_import_error'), 'error');
             }
         };
         reader.readAsText(file);
@@ -376,11 +380,11 @@ export default function PlanList({ plans, setView, setSelectedPlanId, createPlan
             plan.isAI = true; // Mark as AI generated
             let addPlanRes = addPlan(plan);
             if (addPlanRes !== "limit_reached") {
-                showNotification('AI Plan generated successfully!', 'success');
+                showNotification(t('notif_ai_success'), 'success');
                 setActiveModal(null);
             }
         } else {
-            showNotification('Failed to parse AI plan.', 'error');
+            showNotification(t('error_ai_parse'), 'error');
         }
     };
 
@@ -393,7 +397,7 @@ export default function PlanList({ plans, setView, setSelectedPlanId, createPlan
                 >
                     <ArrowLeft size={24} />
                 </button>
-                <h2 className="text-2xl font-bold text-gray-100">My Plans</h2>
+                <h2 className="text-2xl font-bold text-gray-100">{t('plan_list_title')}</h2>
             </div>
 
             <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-4">
@@ -407,14 +411,14 @@ export default function PlanList({ plans, setView, setSelectedPlanId, createPlan
                             className="flex-1 cursor-pointer"
                         >
                             <h3 className="text-lg font-bold text-gray-100 flex items-center gap-2">
-                                {plan.name || 'Untitled Plan'}
+                                {plan.name || t('plan_untitled')}
                                 {plan.isAI && (
                                     <span className="text-[10px] font-bold text-white bg-gradient-to-r from-purple-600 to-indigo-600 px-1.5 py-0.5 rounded flex items-center gap-0.5 shadow-sm border border-purple-400/30">
                                         <Sparkles size={10} fill="currentColor" /> AI
                                     </span>
                                 )}
                             </h3>
-                            <p className="text-sm text-gray-400">{plan.description || 'No description'}</p>
+                            <p className="text-sm text-gray-400">{plan.description || t('plan_no_description')}</p>
                             {plan.isActive && <span className="inline-block mt-1 text-xs font-bold text-brand-primary bg-brand-primary/10 px-2 py-0.5 rounded">ACTIVE</span>}
                         </div>
                         <div className="flex items-center gap-2">
@@ -447,7 +451,7 @@ export default function PlanList({ plans, setView, setSelectedPlanId, createPlan
 
                 {plans.length === 0 && (
                     <div className="text-center text-gray-500 py-10">
-                        No plans created yet.
+                        {t('plan_list_no_plans')}
                     </div>
                 )}
             </div>
@@ -465,13 +469,13 @@ export default function PlanList({ plans, setView, setSelectedPlanId, createPlan
                     className="flex-1 py-3 px-2 bg-brand-light-gray text-gray-300 rounded-xl font-bold hover:bg-brand-border transition-colors flex items-center justify-center gap-2"
                 >
                     <Upload size={16} />
-                    Import
+                    {t('plan_list_import')}
                 </button>
                 <button
                     onClick={() => {
                         const aiCount = plans.filter(p => p.isAI).length;
                         if (aiCount >= userPlan.maxAIPlans) {
-                            showNotification(`AI Plan limit reached (${userPlan.maxAIPlans}) for ${userPlan.name} tier.`, 'error');
+                            showNotification(`${t('notif_ai_limit')} (${userPlan.maxAIPlans})`, 'error');
                             return;
                         }
                         setActiveModal('ai-generate');
@@ -479,139 +483,141 @@ export default function PlanList({ plans, setView, setSelectedPlanId, createPlan
                     className="flex-1 py-3 px-2 bg-gradient-to-r from-purple-900/40 to-indigo-900/40 border border-purple-500/30 text-purple-200 rounded-xl font-bold hover:bg-purple-800/20 transition-colors flex items-center justify-center gap-2"
                 >
                     <Sparkles size={16} className="text-purple-400" />
-                    AI Plan
+                    {t('plan_list_ai_plan')}
                 </button>
                 <button
                     onClick={createPlan}
                     className="flex-1 bg-brand-primary hover:bg-brand-primary-dark text-brand-dark font-bold py-4 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-brand-primary/20 transition-all active:scale-[0.98] group"
                 >
                     <Plus size={24} className="group-hover:rotate-90 transition-transform duration-300" />
-                    NEW PLAN
+                    {t('plan_list_new_plan')}
                 </button>
             </div>
 
             {/* --- MODALS --- */}
-            {activeModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
-                    <div className="bg-brand-gray rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-slide-up">
-                        <div className="p-4 border-b border-brand-border/10 flex justify-between items-center bg-brand-light-gray/50">
-                            <h3 className="font-bold text-gray-100">
-                                {activeModal === 'export' && 'Share Plan'}
-                                {activeModal === 'import' && 'Import Plan'}
-                                {activeModal === 'share-result' && 'Share Link'}
-                                {activeModal === 'import-link' && 'Paste Link'}
-                            </h3>
-                            <button onClick={() => setActiveModal(null)} className="p-1 hover:bg-brand-light-gray rounded-full text-gray-400">
-                                <X size={20} />
-                            </button>
-                        </div>
+            {
+                activeModal && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
+                        <div className="bg-brand-gray rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-slide-up">
+                            <div className="p-4 border-b border-brand-border/10 flex justify-between items-center bg-brand-light-gray/50">
+                                <h3 className="font-bold text-gray-100">
+                                    {activeModal === 'export' && t('modal_share_plan')}
+                                    {activeModal === 'import' && t('modal_import_plan')}
+                                    {activeModal === 'share-result' && t('modal_share_link')}
+                                    {activeModal === 'import-link' && t('modal_paste_link')}
+                                </h3>
+                                <button onClick={() => setActiveModal(null)} className="p-1 hover:bg-brand-light-gray rounded-full text-gray-400">
+                                    <X size={20} />
+                                </button>
+                            </div>
 
-                        <div className="p-6">
-                            {/* EXPORT OPTIONS */}
-                            {activeModal === 'export' && (
-                                <div className="space-y-3">
-                                    <button
-                                        onClick={() => exportPlanToCSV(selectedPlanForExport)}
-                                        className="w-full p-4 border border-brand-border rounded-xl flex items-center gap-4 hover:border-blue-500/50 hover:bg-blue-500/10 transition-all group text-left"
-                                    >
-                                        <div className="p-3 bg-blue-500/20 text-blue-400 rounded-full group-hover:bg-blue-500/30">
-                                            <FileText size={24} />
-                                        </div>
-                                        <div>
-                                            <span className="block font-bold text-gray-200">Export CSV</span>
-                                            <span className="text-xs text-gray-500">Download file to save</span>
-                                        </div>
-                                    </button>
-                                    <button
-                                        onClick={() => handleGenerateLink(selectedPlanForExport)}
-                                        className="w-full p-4 border border-brand-border rounded-xl flex items-center gap-4 hover:border-purple-500/50 hover:bg-purple-500/10 transition-all group text-left"
-                                    >
-                                        <div className="p-3 bg-purple-500/20 text-purple-400 rounded-full group-hover:bg-purple-500/30">
-                                            <LinkIcon size={24} />
-                                        </div>
-                                        <div>
-                                            <span className="block font-bold text-gray-200">Share Link</span>
-                                            <span className="text-xs text-gray-500">Copy unique URL</span>
-                                        </div>
-                                    </button>
-                                </div>
-                            )}
-
-                            {/* IMPORT OPTIONS */}
-                            {activeModal === 'import' && (
-                                <div className="space-y-3">
-                                    <button
-                                        onClick={handleImportFileClick}
-                                        className="w-full p-4 border border-brand-border rounded-xl flex items-center gap-4 hover:border-blue-500/50 hover:bg-blue-500/10 transition-all group text-left"
-                                    >
-                                        <div className="p-3 bg-blue-500/20 text-blue-400 rounded-full group-hover:bg-blue-500/30">
-                                            <Upload size={24} />
-                                        </div>
-                                        <div>
-                                            <span className="block font-bold text-gray-200">Upload File</span>
-                                            <span className="text-xs text-gray-500">Import .csv file</span>
-                                        </div>
-                                    </button>
-                                    <button
-                                        onClick={() => setActiveModal('import-link')}
-                                        className="w-full p-4 border border-brand-border rounded-xl flex items-center gap-4 hover:border-purple-500/50 hover:bg-purple-500/10 transition-all group text-left"
-                                    >
-                                        <div className="p-3 bg-purple-500/20 text-purple-400 rounded-full group-hover:bg-purple-500/30">
-                                            <LinkIcon size={24} />
-                                        </div>
-                                        <div>
-                                            <span className="block font-bold text-gray-200">Paste Link</span>
-                                            <span className="text-xs text-gray-500">Import from URL</span>
-                                        </div>
-                                    </button>
-                                </div>
-                            )}
-
-                            {/* SHARE RESULT (DISPLAY LINK) */}
-                            {activeModal === 'share-result' && (
-                                <div className="flex flex-col gap-4">
-                                    <p className="text-sm text-gray-400 text-center">Copy this link to share your workout plan.</p>
-                                    <div className="bg-black/30 p-3 rounded-lg break-all text-xs font-mono text-gray-300 border border-brand-border max-h-32 overflow-y-auto">
-                                        {generatedLink}
+                            <div className="p-6">
+                                {/* EXPORT OPTIONS */}
+                                {activeModal === 'export' && (
+                                    <div className="space-y-3">
+                                        <button
+                                            onClick={() => exportPlanToCSV(selectedPlanForExport)}
+                                            className="w-full p-4 border border-brand-border rounded-xl flex items-center gap-4 hover:border-blue-500/50 hover:bg-blue-500/10 transition-all group text-left"
+                                        >
+                                            <div className="p-3 bg-blue-500/20 text-blue-400 rounded-full group-hover:bg-blue-500/30">
+                                                <FileText size={24} />
+                                            </div>
+                                            <div>
+                                                <span className="block font-bold text-gray-200">{t('action_export_csv')}</span>
+                                                <span className="text-xs text-gray-500">{t('action_download_file')}</span>
+                                            </div>
+                                        </button>
+                                        <button
+                                            onClick={() => handleGenerateLink(selectedPlanForExport)}
+                                            className="w-full p-4 border border-brand-border rounded-xl flex items-center gap-4 hover:border-purple-500/50 hover:bg-purple-500/10 transition-all group text-left"
+                                        >
+                                            <div className="p-3 bg-purple-500/20 text-purple-400 rounded-full group-hover:bg-purple-500/30">
+                                                <LinkIcon size={24} />
+                                            </div>
+                                            <div>
+                                                <span className="block font-bold text-gray-200">{t('modal_share_link')}</span>
+                                                <span className="text-xs text-gray-500">{t('action_share_link_desc')}</span>
+                                            </div>
+                                        </button>
                                     </div>
-                                    <button
-                                        onClick={copyToClipboard}
-                                        className={`w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all ${hasCopied ? 'bg-green-500 text-white' : 'bg-brand-primary text-black hover:bg-brand-primary-mid'}`}
-                                    >
-                                        {hasCopied ? <Check size={18} /> : <Copy size={18} />}
-                                        {hasCopied ? 'Copied!' : 'Copy Link'}
-                                    </button>
-                                </div>
-                            )}
+                                )}
 
-                            {/* IMPORT LINK INPUT */}
-                            {activeModal === 'import-link' && (
-                                <div className="flex flex-col gap-4">
-                                    <p className="text-sm text-gray-400">Paste the shared link below:</p>
-                                    <textarea
-                                        className="w-full p-3 bg-brand-light-gray border border-brand-border rounded-xl focus:ring-2 focus:ring-brand-primary outline-none text-sm min-h-[100px] text-gray-200 placeholder-gray-600"
-                                        placeholder="https://..."
-                                        value={importLinkInput}
-                                        onChange={(e) => setImportLinkInput(e.target.value)}
-                                    />
-                                    <button
-                                        onClick={handleImportLinkSubmit}
-                                        className="w-full py-3 bg-brand-primary text-black rounded-xl font-bold hover:bg-brand-primary-mid transition-colors"
-                                    >
-                                        Import Plan
-                                    </button>
-                                </div>
-                            )}
+                                {/* IMPORT OPTIONS */}
+                                {activeModal === 'import' && (
+                                    <div className="space-y-3">
+                                        <button
+                                            onClick={handleImportFileClick}
+                                            className="w-full p-4 border border-brand-border rounded-xl flex items-center gap-4 hover:border-blue-500/50 hover:bg-blue-500/10 transition-all group text-left"
+                                        >
+                                            <div className="p-3 bg-blue-500/20 text-blue-400 rounded-full group-hover:bg-blue-500/30">
+                                                <Upload size={24} />
+                                            </div>
+                                            <div>
+                                                <span className="block font-bold text-gray-200">{t('action_upload_file')}</span>
+                                                <span className="text-xs text-gray-500">{t('action_import_csv')}</span>
+                                            </div>
+                                        </button>
+                                        <button
+                                            onClick={() => setActiveModal('import-link')}
+                                            className="w-full p-4 border border-brand-border rounded-xl flex items-center gap-4 hover:border-purple-500/50 hover:bg-purple-500/10 transition-all group text-left"
+                                        >
+                                            <div className="p-3 bg-purple-500/20 text-purple-400 rounded-full group-hover:bg-purple-500/30">
+                                                <LinkIcon size={24} />
+                                            </div>
+                                            <div>
+                                                <span className="block font-bold text-gray-200">{t('modal_paste_link')}</span>
+                                                <span className="text-xs text-gray-500">{t('action_import_url')}</span>
+                                            </div>
+                                        </button>
+                                    </div>
+                                )}
+
+                                {/* SHARE RESULT (DISPLAY LINK) */}
+                                {activeModal === 'share-result' && (
+                                    <div className="flex flex-col gap-4">
+                                        <p className="text-sm text-gray-400 text-center">{t('share_copy_text')}</p>
+                                        <div className="bg-black/30 p-3 rounded-lg break-all text-xs font-mono text-gray-300 border border-brand-border max-h-32 overflow-y-auto">
+                                            {generatedLink}
+                                        </div>
+                                        <button
+                                            onClick={copyToClipboard}
+                                            className={`w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all ${hasCopied ? 'bg-green-500 text-white' : 'bg-brand-primary text-black hover:bg-brand-primary-mid'}`}
+                                        >
+                                            {hasCopied ? <Check size={18} /> : <Copy size={18} />}
+                                            {hasCopied ? t('share_copied') : t('share_copy_link')}
+                                        </button>
+                                    </div>
+                                )}
+
+                                {/* IMPORT LINK INPUT */}
+                                {activeModal === 'import-link' && (
+                                    <div className="flex flex-col gap-4">
+                                        <p className="text-sm text-gray-400">{t('share_paste_text')}</p>
+                                        <textarea
+                                            className="w-full p-3 bg-brand-light-gray border border-brand-border rounded-xl focus:ring-2 focus:ring-brand-primary outline-none text-sm min-h-[100px] text-gray-200 placeholder-gray-600"
+                                            placeholder="https://..."
+                                            value={importLinkInput}
+                                            onChange={(e) => setImportLinkInput(e.target.value)}
+                                        />
+                                        <button
+                                            onClick={handleImportLinkSubmit}
+                                            className="w-full py-3 bg-brand-primary text-black rounded-xl font-bold hover:bg-brand-primary-mid transition-colors"
+                                        >
+                                            {t('modal_import_plan')}
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )
+            }
             {/* AI Generator Modal */}
             <AIPlanGeneratorModal
                 isOpen={activeModal === 'ai-generate'}
                 onClose={() => setActiveModal(null)}
                 onPlanGenerated={handlePlanGenerated}
             />
-        </div>
+        </div >
     );
 }

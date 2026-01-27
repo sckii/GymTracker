@@ -3,8 +3,10 @@ import TabManager from './TabManager';
 import WorkoutView from './WorkoutView';
 import PlanInfoView from './PlanInfoView';
 import { ArrowLeft } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function PlanEditor({ plan, updatePlan, onBack }) {
+    const { t } = useLanguage();
     // Start with 'plan-info' as the active tab
     const [activeTab, setActiveTab] = useState('plan-info');
 
@@ -27,8 +29,8 @@ export default function PlanEditor({ plan, updatePlan, onBack }) {
                     >
                         <ArrowLeft size={20} />
                     </button>
-                    <h2 className="text-lg font-bold text-gray-100 truncate max-w-[200px]">{plan.name || 'New Plan'}</h2>
-                    {isReadOnly && <span className="bg-brand-primary/20 text-brand-primary px-2 py-0.5 rounded text-xs font-bold uppercase">Active</span>}
+                    <h2 className="text-lg font-bold text-gray-100 truncate max-w-[200px]">{plan.name || t('editor_new_plan')}</h2>
+                    {isReadOnly && <span className="bg-brand-primary/20 text-brand-primary px-2 py-0.5 rounded text-xs font-bold uppercase">{t('editor_active')}</span>}
                 </div>
             </div>
 
@@ -48,7 +50,7 @@ export default function PlanEditor({ plan, updatePlan, onBack }) {
                         <WorkoutView workout={activeWorkout} setWorkouts={setWorkouts} isReadOnly={isReadOnly} />
                     ) : (
                         <div className="flex flex-col items-center justify-center h-full text-gray-500 gap-2">
-                            <span>No workout selected</span>
+                            <span>{t('editor_no_workout')}</span>
                         </div>
                     )}
                 </div>

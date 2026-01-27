@@ -1,7 +1,9 @@
 import React from 'react';
 import { ClipboardList, Play, History } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function HomeScreen({ setView, activePlan }) {
+    const { t } = useLanguage();
     return (
         <div className="relative flex flex-col gap-6 p-8 h-full justify-center items-center overflow-hidden">
             {/* Logo with new secondary colors */}
@@ -20,8 +22,8 @@ export default function HomeScreen({ setView, activePlan }) {
                     <ClipboardList size={28} />
                 </div>
                 <div className="text-left">
-                    <span className="block text-lg font-bold text-gray-100 tracking-tight">My Plans</span>
-                    <span className="text-xs text-gray-400 font-medium">Manage workouts</span>
+                    <span className="block text-lg font-bold text-gray-100 tracking-tight">{t('home_my_plans')}</span>
+                    <span className="text-xs text-gray-400 font-medium">{t('home_manage_workouts')}</span>
                 </div>
             </button>
 
@@ -33,13 +35,13 @@ export default function HomeScreen({ setView, activePlan }) {
                     <Play size={28} className={activePlan ? "ml-1" : ""} />
                 </div>
                 <div className="flex flex-col items-start text-left">
-                    <span className="block text-lg font-bold text-gray-100 tracking-tight">Start Workout</span>
+                    <span className="block text-lg font-bold text-gray-100 tracking-tight">{t('home_start_workout')}</span>
                     {activePlan ? (
                         <span className="text-xs text-black font-bold mt-1 bg-brand-primary px-2 py-0.5 rounded-full shadow-sm">
                             {activePlan.name}
                         </span>
                     ) : (
-                        <span className="text-xs text-gray-500 font-medium mt-1">Select a plan first</span>
+                        <span className="text-xs text-gray-500 font-medium mt-1">{t('home_select_plan')}</span>
                     )}
                 </div>
             </button>
@@ -52,8 +54,8 @@ export default function HomeScreen({ setView, activePlan }) {
                     <History size={28} />
                 </div>
                 <div className="text-left">
-                    <span className="block text-lg font-bold text-gray-100 tracking-tight">History & Stats</span>
-                    <span className="text-xs text-gray-400 font-medium">View progress</span>
+                    <span className="block text-lg font-bold text-gray-100 tracking-tight">{t('home_history')}</span>
+                    <span className="text-xs text-gray-400 font-medium">{t('home_view_progress')}</span>
                 </div>
             </button>
         </div>

@@ -1,6 +1,8 @@
 import React from 'react';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function ConfirmModal({ isOpen, title, message, confirmText, onConfirm, onCancel }) {
+    const { t } = useLanguage();
     if (!isOpen) return null;
 
     return (
@@ -16,7 +18,7 @@ export default function ConfirmModal({ isOpen, title, message, confirmText, onCo
                             onClick={onCancel}
                             className="flex-1 py-3 rounded-xl font-bold bg-brand-light-gray text-gray-300 hover:bg-brand-border transition-colors"
                         >
-                            Cancel
+                            {t('common_cancel')}
                         </button>
                         <button
                             onClick={onConfirm}
