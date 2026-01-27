@@ -2,8 +2,8 @@ export const SUBSCRIPTION_PLANS = {
     FREE: {
         id: 'free',
         name: 'Free',
-        maxLogs: 20,
-        maxPlans: 2,
+        maxLogs: 1000,
+        maxPlans: 50,
         color: 'gray',
         price: 'Free'
     },
@@ -14,7 +14,9 @@ export const SUBSCRIPTION_PLANS = {
         maxPlans: 10,
         color: 'blue',
         price: '$4.99/mo',
-        priceId: 'price_1SsrAfDLLX3WOCmi9MzxP0dZ'
+        price: '$4.99/mo',
+        priceId: 'price_1SsrAfDLLX3WOCmi9MzxP0dZ',
+        comingSoon: true
     },
     PRO: {
         id: 'pro',
@@ -23,7 +25,9 @@ export const SUBSCRIPTION_PLANS = {
         maxPlans: Infinity,
         color: 'purple',
         price: '$9.99/mo',
-        priceId: 'price_1Sso3MDLLX3WOCmim3l7Mvi2'
+        price: '$9.99/mo',
+        priceId: 'price_1Sso3MDLLX3WOCmim3l7Mvi2',
+        comingSoon: true
     }
 };
 
