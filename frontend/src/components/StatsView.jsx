@@ -105,11 +105,14 @@ export default function StatsView({ logs, plans, activePlanId, onBack }) {
         const map = new Map();
         if (selectedPlan && selectedPlan.workouts) {
             selectedPlan.workouts.forEach(w => {
-                if (w.exercises) {
-                    w.exercises.forEach(ex => {
-                        if (ex.id) map.set(ex.id, ex.name);
-                    });
-                }
+                const variations = w.variations && w.variations.length > 0 ? w.variations : [{ exercises: w.exercises || [] }];
+                variations.forEach(v => {
+                    if (v.exercises) {
+                        v.exercises.forEach(ex => {
+                            if (ex.id) map.set(ex.id, ex.name);
+                        });
+                    }
+                });
             });
         }
         return map;

@@ -8,7 +8,7 @@ export default function TabManager({ workouts, activeTab, setActiveTab, setWorko
     const addTab = () => {
         if (isReadOnly) return;
         const newId = Date.now().toString();
-        const newWorkout = { id: newId, name: 'New Workout', exercises: [] };
+        const newWorkout = { id: newId, name: 'New Workout', variations: [{ id: newId + '_v', name: 'Semana 1', exercises: [] }] };
         setWorkouts(prev => [...prev, newWorkout]);
         setActiveTab(newId);
     };

@@ -269,7 +269,16 @@ function App() {
         const mappedPlans = plansData.map(p => ({
           ...p,
           isActive: p.is_active,
-          startDate: p.start_date || p.startDate // Handle both for safety
+          startDate: p.start_date || p.startDate, // Handle both for safety
+          workouts: p.workouts?.map(w => {
+            if (!w.variations) {
+              return {
+                ...w,
+                variations: [{ id: w.id + '_v', name: 'Semana 1', exercises: w.exercises || [] }]
+              };
+            }
+            return w;
+          }) || []
         }));
         setPlans(mappedPlans);
       } else if (plansError) {
@@ -334,7 +343,7 @@ function App() {
       age: '',
       isActive: false,
       workouts: [
-        { id: '1', name: 'Workout A', exercises: [] }
+        { id: '1', name: 'Workout A', variations: [{ id: generateUUID(), name: 'Semana 1', exercises: [] }] }
       ]
     };
 
@@ -373,6 +382,17 @@ function App() {
 
     // Force a new valid UUID for the plan to match Supabase schema, ignoring any legacy/timestamp IDs from CSV
     const securePlan = { ...newPlan, id: generateUUID() };
+
+    // Migrate imported plan to Variations schema
+    securePlan.workouts = securePlan.workouts?.map(w => {
+      if (!w.variations) {
+        return {
+          ...w,
+          variations: [{ id: w.id + '_v', name: 'Semana 1', exercises: w.exercises || [] }]
+        };
+      }
+      return w;
+    }) || [];
 
     setPlans(prev => [...prev, securePlan]);
 

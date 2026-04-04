@@ -51,13 +51,9 @@ export default function ExerciseCard({ exercise, updateExercise, deleteExercise,
         <>
             <div className={`bg-brand-light-gray p-4 rounded-xl shadow-sm border border-brand-border flex flex-col gap-3 group relative ${isReadOnly ? 'opacity-80' : ''}`}>
                 <div className="flex justify-between items-start">
-                    <input
-                        disabled={isReadOnly}
-                        className="font-bold text-base text-gray-100 placeholder-gray-600 w-full outline-none bg-transparent"
-                        placeholder="Exercise Name"
-                        value={exercise.name}
-                        onChange={(e) => updateExercise(exercise.id, { ...exercise, name: e.target.value })}
-                    />
+                    <h3 className="font-bold text-base text-gray-100 mt-1">
+                        {exercise.name || 'Unnamed Exercise'}
+                    </h3>
                     {!isReadOnly && (
                         <button
                             onClick={() => deleteExercise(exercise.id)}

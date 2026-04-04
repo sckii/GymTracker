@@ -24,26 +24,45 @@ export default function ActiveWorkoutSelector({ activePlan, onSelectWorkout }) {
             </div>
 
             <div className="grid gap-4">
-                {activePlan.workouts.map((workout) => (
-                    <button
-                        key={workout.id}
-                        onClick={() => onSelectWorkout(workout)}
-                        className="group flex items-center justify-between p-6 bg-brand-light-gray rounded-2xl border border-brand-border shadow-sm hover:shadow-md hover:border-brand-primary/50 hover:bg-brand-primary/5 transition-all text-left"
-                    >
-                        <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-full bg-brand-gray text-brand-primary flex items-center justify-center font-bold text-xl group-hover:bg-brand-primary group-hover:text-black transition-colors">
-                                {workout.name.charAt(0).toUpperCase()}
-                            </div>
-                            <div>
-                                <h3 className="text-xl font-bold text-gray-100">{workout.name}</h3>
-                                <p className="text-sm text-gray-400 font-medium">
-                                    {workout.exercises.length} Exercises
-                                </p>
-                            </div>
-                        </div>
-                        <ChevronRight className="text-gray-600 group-hover:text-brand-lime transition-colors" size={24} />
-                    </button>
-                ))}
+                {activePlan.workouts.flatMap((workout) => {
+                    const variations = workout.variations && workout.variations.length > 0 
+                        ? workout.variations 
+                        : [{ id: workout.id + '_v', name: 'Semana 1', exercises: workout.exercises || [] }];
+                        
+                    return variations.map((variation) => {
+                        // If it's just the default variation, we don't need to suffix it in the UI unless they renamed it
+                        const isDefault = variation.name === 'Semana 1' && variations.length === 1;
+                        const displayName = isDefault ? workout.name : `${workout.name} - ${variation.name}`;
+                        
+                        const sessionWorkout = {
+                            ...workout,
+                            id: `${workout.id}-${variation.id}`,
+                            name: displayName,
+                            exercises: variation.exercises || []
+                        };
+
+                        return (
+                            <button
+                                key={`${workout.id}-${variation.id}`}
+                                onClick={() => onSelectWorkout(sessionWorkout)}
+                                className="group flex items-center justify-between p-6 bg-brand-light-gray rounded-2xl border border-brand-border shadow-sm hover:shadow-md hover:border-brand-primary/50 hover:bg-brand-primary/5 transition-all text-left"
+                            >
+                                <div className="flex items-center gap-4">
+                                    <div className="w-12 h-12 rounded-full bg-brand-gray text-brand-primary flex items-center justify-center font-bold text-xl group-hover:bg-brand-primary group-hover:text-black transition-colors">
+                                        {workout.name.charAt(0).toUpperCase()}
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xl font-bold text-gray-100">{displayName}</h3>
+                                        <p className="text-sm text-gray-400 font-medium">
+                                            {(variation.exercises || []).length} Exercises
+                                        </p>
+                                    </div>
+                                </div>
+                                <ChevronRight className="text-gray-600 group-hover:text-brand-lime transition-colors" size={24} />
+                            </button>
+                        );
+                    });
+                })}
             </div>
         </div>
     );

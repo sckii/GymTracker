@@ -98,14 +98,17 @@ export default function PlanList({ plans, setView, setSelectedPlanId, createPlan
             // Calculate max sets to define number of Rep/Rest columns
             let maxSets = 0;
             plan.workouts.forEach(workout => {
-                workout.exercises.forEach(exercise => {
-                    const sets = parseInt(exercise.sets) || 0;
-                    if (sets > maxSets) maxSets = sets;
+                const variations = workout.variations && workout.variations.length > 0 ? workout.variations : [{ name: 'Semana 1', exercises: workout.exercises || [] }];
+                variations.forEach(variation => {
+                    (variation.exercises || []).forEach(exercise => {
+                        const sets = parseInt(exercise.sets) || 0;
+                        if (sets > maxSets) maxSets = sets;
+                    });
                 });
             });
 
             // Build Headers
-            let headers = ['PlanName', 'Description', 'StartDate', 'Duration', 'Weight', 'Age', 'WorkoutName', 'ExerciseName', 'Sets', 'Type', 'Reps', 'Rest Type', 'Rest', 'Rest After'];
+            let headers = ['PlanName', 'Description', 'StartDate', 'Duration', 'Weight', 'Age', 'WorkoutName', 'VariationName', 'ExerciseName', 'Sets', 'Type', 'Reps', 'Rest Type', 'Rest', 'Rest After'];
             for (let i = 1; i <= maxSets; i++) {
                 headers.push(`Rep ${i}`);
             }
@@ -115,32 +118,39 @@ export default function PlanList({ plans, setView, setSelectedPlanId, createPlan
 
             const rows = [];
 
-            // Add First Row with Plan Details (and first exercise if exists)
-            // We iterate all workouts and exercises to flatten the data
             if (plan.workouts.length === 0) {
-                // Plan with no workouts (padding 2 sets of maxSets for Reps and Rest columns)
-                rows.push([plan.name, plan.description, plan.startDate, plan.duration, plan.weight, plan.age, '', '', '', '', '', '', '', '', ...Array(maxSets * 2).fill('')]);
+                rows.push([plan.name, plan.description, plan.startDate, plan.duration, plan.weight, plan.age, '', '', '', '', '', '', '', '', '', ...Array(maxSets * 2).fill('')]);
             } else {
                 plan.workouts.forEach(workout => {
-                    if (workout.exercises.length === 0) {
+                    const variations = workout.variations && workout.variations.length > 0 ? workout.variations : [{ name: 'Semana 1', exercises: workout.exercises || [] }];
+                    
+                    if (variations.length === 0 || (variations.length === 1 && (variations[0].exercises || []).length === 0)) {
                         rows.push([
                             plan.name, plan.description, plan.startDate, plan.duration, plan.weight, plan.age,
-                            workout.name, '', '', '', '', '', '', '', ...Array(maxSets * 2).fill('')
+                            workout.name, variations[0]?.name || 'Semana 1', '', '', '', '', '', '', '', ...Array(maxSets * 2).fill('')
                         ]);
                     } else {
-                        workout.exercises.forEach(exercise => {
-                            const row = [
-                                plan.name,
-                                plan.description,
-                                plan.startDate,
-                                plan.duration,
-                                plan.weight,
-                                plan.age,
-                                workout.name,
-                                exercise.name,
-                                exercise.sets,
-                                exercise.type,
-                            ];
+                        variations.forEach(variation => {
+                            if ((variation.exercises || []).length === 0) {
+                                rows.push([
+                                    plan.name, plan.description, plan.startDate, plan.duration, plan.weight, plan.age,
+                                    workout.name, variation.name, '', '', '', '', '', '', '', ...Array(maxSets * 2).fill('')
+                                ]);
+                            } else {
+                                (variation.exercises || []).forEach(exercise => {
+                                    const row = [
+                                        plan.name,
+                                        plan.description,
+                                        plan.startDate,
+                                        plan.duration,
+                                        plan.weight,
+                                        plan.age,
+                                        workout.name,
+                                        variation.name,
+                                        exercise.name,
+                                        exercise.sets,
+                                        exercise.type,
+                                    ];
 
                             // Reps Logic
                             if (exercise.type === 'Normal') {
@@ -175,7 +185,9 @@ export default function PlanList({ plans, setView, setSelectedPlanId, createPlan
                                 row.push(...Array(maxSets).fill(''));
                             }
 
-                            rows.push(row);
+                                rows.push(row);
+                                });
+                            }
                         });
                     }
                 });
@@ -275,9 +287,20 @@ export default function PlanList({ plans, setView, setSelectedPlanId, createPlan
                 workoutsMap[row.WorkoutName] = {
                     id: Date.now().toString() + Math.random().toString().slice(2, 6),
                     name: row.WorkoutName,
-                    exercises: []
+                    variations: []
                 };
                 newPlan.workouts.push(workoutsMap[row.WorkoutName]);
+            }
+
+            const variationName = row.VariationName || 'Semana 1';
+            let variation = workoutsMap[row.WorkoutName].variations.find(v => v.name === variationName);
+            if (!variation) {
+                variation = {
+                    id: Date.now().toString() + Math.random().toString().slice(2, 6),
+                    name: variationName,
+                    exercises: []
+                };
+                workoutsMap[row.WorkoutName].variations.push(variation);
             }
 
             if (row.ExerciseName) {
@@ -325,7 +348,7 @@ export default function PlanList({ plans, setView, setSelectedPlanId, createPlan
                     }
                 }
 
-                workoutsMap[row.WorkoutName].exercises.push({
+                variation.exercises.push({
                     id: Date.now().toString() + Math.random().toString().slice(2, 6),
                     name: row.ExerciseName,
                     sets: row.Sets || '',
@@ -473,7 +496,7 @@ export default function PlanList({ plans, setView, setSelectedPlanId, createPlan
                             {/* EXPORT OPTIONS */}
                             {activeModal === 'export' && (
                                 <div className="space-y-3">
-                                    <button
+                                    {/* <button
                                         onClick={() => exportPlanToCSV(selectedPlanForExport)}
                                         className="w-full p-4 border border-brand-border rounded-xl flex items-center gap-4 hover:border-blue-500/50 hover:bg-blue-500/10 transition-all group text-left"
                                     >
@@ -484,7 +507,7 @@ export default function PlanList({ plans, setView, setSelectedPlanId, createPlan
                                             <span className="block font-bold text-gray-200">Export CSV</span>
                                             <span className="text-xs text-gray-500">Download file to save</span>
                                         </div>
-                                    </button>
+                                    </button> */}
                                     <button
                                         onClick={() => handleGenerateLink(selectedPlanForExport)}
                                         className="w-full p-4 border border-brand-border rounded-xl flex items-center gap-4 hover:border-purple-500/50 hover:bg-purple-500/10 transition-all group text-left"
@@ -503,7 +526,7 @@ export default function PlanList({ plans, setView, setSelectedPlanId, createPlan
                             {/* IMPORT OPTIONS */}
                             {activeModal === 'import' && (
                                 <div className="space-y-3">
-                                    <button
+                                    {/* <button
                                         onClick={handleImportFileClick}
                                         className="w-full p-4 border border-brand-border rounded-xl flex items-center gap-4 hover:border-blue-500/50 hover:bg-blue-500/10 transition-all group text-left"
                                     >
@@ -514,7 +537,7 @@ export default function PlanList({ plans, setView, setSelectedPlanId, createPlan
                                             <span className="block font-bold text-gray-200">Upload File</span>
                                             <span className="text-xs text-gray-500">Import .csv file</span>
                                         </div>
-                                    </button>
+                                    </button> */}
                                     <button
                                         onClick={() => setActiveModal('import-link')}
                                         className="w-full p-4 border border-brand-border rounded-xl flex items-center gap-4 hover:border-purple-500/50 hover:bg-purple-500/10 transition-all group text-left"
