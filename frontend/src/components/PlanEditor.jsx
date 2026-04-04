@@ -1,12 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import TabManager from './TabManager';
 import WorkoutView from './WorkoutView';
 import PlanInfoView from './PlanInfoView';
 import { ArrowLeft } from 'lucide-react';
 
 export default function PlanEditor({ plan, updatePlan, onBack }) {
-    // Start with 'plan-info' as the active tab
     const [activeTab, setActiveTab] = useState('plan-info');
+
+    useEffect(() => {
+        const prev = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+        return () => { document.body.style.overflow = prev; };
+    }, []);
 
     const setWorkouts = (updater) => {
         const newWorkouts = typeof updater === 'function' ? updater(plan.workouts) : updater;
@@ -27,7 +32,7 @@ export default function PlanEditor({ plan, updatePlan, onBack }) {
                     >
                         <ArrowLeft size={20} />
                     </button>
-                    <h2 className="text-lg font-bold text-gray-100 truncate max-w-[200px]">{plan.name || 'New Plan'}</h2>
+                    <h2 className="text-lg font-bold text-gray-100 truncate max-w-[300px]">{plan.name || 'New Plan'}</h2>
                     {isReadOnly && <span className="bg-brand-primary/20 text-brand-primary px-2 py-0.5 rounded text-xs font-bold uppercase">Active</span>}
                 </div>
             </div>

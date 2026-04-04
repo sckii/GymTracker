@@ -1,11 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import ExerciseCard from './ExerciseCard';
-import { Plus, Copy, Trash2, Edit2, Play } from 'lucide-react';
+import { Plus, Copy, Trash2, Edit2, Play, ChevronUp, ChevronDown } from 'lucide-react';
 import { generateUUID } from '../lib/uuid';
 import ExerciseSelectorModal from './ExerciseSelectorModal';
-import { MUSCLE_GROUPS } from '../lib/exerciseDatabase';
+import { fetchWgerCategories } from '../lib/wgerClient';
 
 export default function WorkoutView({ workout, setWorkouts, isReadOnly }) {
+    const workoutRef = useRef(null);
+    const [muscleCategories, setMuscleCategories] = useState([]);
+
+    useEffect(() => {
+        fetchWgerCategories().then(setMuscleCategories);
+    }, []);
     // Ensure variations array exists for legacy support during render
     const variations = workout.variations && workout.variations.length > 0
         ? workout.variations
@@ -14,6 +20,7 @@ export default function WorkoutView({ workout, setWorkouts, isReadOnly }) {
     const [activeVariationId, setActiveVariationId] = useState(variations[0]?.id);
     const [editingVariationId, setEditingVariationId] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isHeaderExpanded, setIsHeaderExpanded] = useState(true);
 
     // If workout changes, reset active variation to its first
     useEffect(() => {
@@ -151,35 +158,49 @@ export default function WorkoutView({ workout, setWorkouts, isReadOnly }) {
     };
 
     return (
-        <div className="flex flex-col h-full bg-brand-gray">
-            <div className="px-6 pt-6 border-b border-brand-border/50 pb-4">
-                <input
-                    disabled={isReadOnly}
-                    className={`text-xl font-bold mb-3 bg-transparent border-none outline-none text-gray-100 placeholder-gray-600 w-full focus:ring-1 focus:ring-brand-primary/50 rounded px-2 -mx-2 transition-all ${isReadOnly ? 'text-gray-500' : ''}`}
-                    value={workout.name}
-                    onChange={(e) => updateWorkoutName(e.target.value)}
-                    placeholder="Workout Name"
-                />
+        <div ref={workoutRef} className="flex flex-col h-full bg-brand-gray">
+            <div className="px-6 pt-4 border-b border-brand-border/50 pb-4">
+                {/* Name row + toggle */}
+                <div className="flex items-center gap-2 mb-3">
+                    <input
+                        disabled={isReadOnly}
+                        className={`text-xl font-bold bg-transparent border-none outline-none text-gray-100 placeholder-gray-600 flex-1 min-w-0 focus:ring-1 focus:ring-brand-primary/50 rounded px-2 -mx-2 transition-all ${isReadOnly ? 'text-gray-500' : ''}`}
+                        value={workout.name}
+                        onChange={(e) => updateWorkoutName(e.target.value)}
+                        placeholder="Workout Name"
+                    />
+                    <button
+                        onClick={() => setIsHeaderExpanded(v => !v)}
+                        className="shrink-0 p-1.5 rounded-lg text-gray-500 hover:text-gray-300 hover:bg-brand-light-gray transition-colors"
+                    >
+                        {isHeaderExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                    </button>
+                </div>
 
-                {/* Target Muscles */}
-                <div className="flex flex-wrap gap-2 mb-4">
-                    {(!isReadOnly || (workout.targetMuscles && workout.targetMuscles.length > 0)) && MUSCLE_GROUPS.map(m => {
-                        const isSelected = (workout.targetMuscles || []).includes(m.id);
-                        if (isReadOnly && !isSelected) return null;
-                        return (
-                            <button
-                                key={m.id}
-                                onClick={() => !isReadOnly && toggleTargetMuscle(m.id)}
-                                className={`px-3 py-1 rounded-full text-xs font-bold transition-all border ${isSelected
-                                    ? 'bg-brand-primary/10 text-brand-primary border-brand-primary'
-                                    : 'bg-brand-light-gray/50 text-gray-400 border-brand-border hover:border-gray-500'
-                                    }`}
-                                disabled={isReadOnly}
-                            >
-                                {m.name}
-                            </button>
-                        );
-                    })}
+                {/* Collapsible: muscles */}
+                <div className={`overflow-hidden transition-all duration-300 ${isHeaderExpanded ? 'max-h-96 opacity-100 mb-4' : 'max-h-0 opacity-0'}`}>
+                    {!isReadOnly && muscleCategories.length > 0 && (
+                        <p className="text-xs text-gray-500 mb-2">Select the muscle groups targeted in this workout</p>
+                    )}
+                    <div className="flex flex-wrap gap-2">
+                        {(!isReadOnly || (workout.targetMuscles && workout.targetMuscles.length > 0)) && muscleCategories.map(m => {
+                            const isSelected = (workout.targetMuscles || []).includes(m.id);
+                            if (isReadOnly && !isSelected) return null;
+                            return (
+                                <button
+                                    key={m.id}
+                                    onClick={() => !isReadOnly && toggleTargetMuscle(m.id)}
+                                    className={`px-3 py-1 rounded-full text-xs font-bold transition-all border ${isSelected
+                                        ? 'bg-brand-primary/10 text-brand-primary border-brand-primary'
+                                        : 'bg-brand-light-gray/50 text-gray-400 border-brand-border hover:border-gray-500'
+                                        }`}
+                                    disabled={isReadOnly}
+                                >
+                                    {m.name}
+                                </button>
+                            );
+                        })}
+                    </div>
                 </div>
 
                 {/* Variations Tabs */}
@@ -270,6 +291,7 @@ export default function WorkoutView({ workout, setWorkouts, isReadOnly }) {
                 onClose={() => setIsModalOpen(false)}
                 onAddExercises={handleAddExercisesFromModal}
                 defaultMuscles={workout.targetMuscles || []}
+                parentRef={workoutRef}
             />
         </div>
     );

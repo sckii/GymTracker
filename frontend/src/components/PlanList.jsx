@@ -98,7 +98,7 @@ export default function PlanList({ plans, setView, setSelectedPlanId, createPlan
             // Calculate max sets to define number of Rep/Rest columns
             let maxSets = 0;
             plan.workouts.forEach(workout => {
-                const variations = workout.variations && workout.variations.length > 0 ? workout.variations : [{ name: 'Semana 1', exercises: workout.exercises || [] }];
+                const variations = workout.variations && workout.variations.length > 0 ? workout.variations : [{ name: 'Week 1', exercises: workout.exercises || [] }];
                 variations.forEach(variation => {
                     (variation.exercises || []).forEach(exercise => {
                         const sets = parseInt(exercise.sets) || 0;
@@ -122,12 +122,12 @@ export default function PlanList({ plans, setView, setSelectedPlanId, createPlan
                 rows.push([plan.name, plan.description, plan.startDate, plan.duration, plan.weight, plan.age, '', '', '', '', '', '', '', '', '', ...Array(maxSets * 2).fill('')]);
             } else {
                 plan.workouts.forEach(workout => {
-                    const variations = workout.variations && workout.variations.length > 0 ? workout.variations : [{ name: 'Semana 1', exercises: workout.exercises || [] }];
+                    const variations = workout.variations && workout.variations.length > 0 ? workout.variations : [{ name: 'Week 1', exercises: workout.exercises || [] }];
                     
                     if (variations.length === 0 || (variations.length === 1 && (variations[0].exercises || []).length === 0)) {
                         rows.push([
                             plan.name, plan.description, plan.startDate, plan.duration, plan.weight, plan.age,
-                            workout.name, variations[0]?.name || 'Semana 1', '', '', '', '', '', '', '', ...Array(maxSets * 2).fill('')
+                            workout.name, variations[0]?.name || 'Week 1', '', '', '', '', '', '', '', ...Array(maxSets * 2).fill('')
                         ]);
                     } else {
                         variations.forEach(variation => {
@@ -292,7 +292,7 @@ export default function PlanList({ plans, setView, setSelectedPlanId, createPlan
                 newPlan.workouts.push(workoutsMap[row.WorkoutName]);
             }
 
-            const variationName = row.VariationName || 'Semana 1';
+            const variationName = row.VariationName || 'Week 1';
             let variation = workoutsMap[row.WorkoutName].variations.find(v => v.name === variationName);
             if (!variation) {
                 variation = {

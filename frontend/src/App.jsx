@@ -24,10 +24,28 @@ const BASE_API_URL = 'https://gymtracker-api.sckii.com';
 
 function App() {
   const [session, setSession] = useState(null);
-  const [view, setView] = useState('home'); // 'home', 'plan-list', 'plan-editor', 'start-workout', 'workout-session', 'stats'
+  const [view, setView] = useState(() => {
+    const saved = sessionStorage.getItem('app_view');
+    const hasSession = !!sessionStorage.getItem('app_active_session');
+    if (saved === 'workout-session' && hasSession) return 'workout-session';
+    return (saved && saved !== 'workout-session') ? saved : 'home';
+  });
   const [plans, setPlans] = useState([]);
   const [logs, setLogs] = useState([]); // Store workout logs
-  const [selectedPlanId, setSelectedPlanId] = useState(null);
+  const [selectedPlanId, setSelectedPlanId] = useState(() => sessionStorage.getItem('app_selected_plan_id'));
+
+  // Persist navigation state across reloads
+  useEffect(() => {
+    sessionStorage.setItem('app_view', view);
+  }, [view]);
+
+  useEffect(() => {
+    if (selectedPlanId) {
+      sessionStorage.setItem('app_selected_plan_id', selectedPlanId);
+    } else {
+      sessionStorage.removeItem('app_selected_plan_id');
+    }
+  }, [selectedPlanId]);
 
   // Subscription State
   const [userPlan, setUserPlan] = useState(DEFAULT_PLAN);
@@ -48,8 +66,34 @@ function App() {
     return () => subscription.unsubscribe();
   }, []);
 
-  const [activeSessionWorkout, setActiveSessionWorkout] = useState(null);
+  const [activeSessionWorkout, setActiveSessionWorkout] = useState(() => {
+    try {
+      const saved = sessionStorage.getItem('app_active_session');
+      return saved ? JSON.parse(saved) : null;
+    } catch { return null; }
+  });
+
+  useEffect(() => {
+    if (activeSessionWorkout) {
+      sessionStorage.setItem('app_active_session', JSON.stringify(activeSessionWorkout));
+    } else {
+      sessionStorage.removeItem('app_active_session');
+    }
+  }, [activeSessionWorkout]);
+
   const [isDataLoaded, setIsDataLoaded] = useState(false);
+
+  // Active session badge timer
+  const [sessionElapsed, setSessionElapsed] = useState(0);
+  useEffect(() => {
+    if (!activeSessionWorkout || view === 'workout-session') return;
+    const startTime = parseInt(sessionStorage.getItem('app_session_start') || Date.now());
+    setSessionElapsed(Math.floor((Date.now() - startTime) / 1000));
+    const interval = setInterval(() => {
+      setSessionElapsed(Math.floor((Date.now() - startTime) / 1000));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [activeSessionWorkout, view]);
 
   // UI State
   const [notification, setNotification] = useState(null);
@@ -274,7 +318,7 @@ function App() {
             if (!w.variations) {
               return {
                 ...w,
-                variations: [{ id: w.id + '_v', name: 'Semana 1', exercises: w.exercises || [] }]
+                variations: [{ id: w.id + '_v', name: 'Week 1', exercises: w.exercises || [] }]
               };
             }
             return w;
@@ -343,7 +387,7 @@ function App() {
       age: '',
       isActive: false,
       workouts: [
-        { id: '1', name: 'Workout A', variations: [{ id: generateUUID(), name: 'Semana 1', exercises: [] }] }
+        { id: '1', name: 'Workout A', variations: [{ id: generateUUID(), name: 'Week 1', exercises: [] }] }
       ]
     };
 
@@ -388,7 +432,7 @@ function App() {
       if (!w.variations) {
         return {
           ...w,
-          variations: [{ id: w.id + '_v', name: 'Semana 1', exercises: w.exercises || [] }]
+          variations: [{ id: w.id + '_v', name: 'Week 1', exercises: w.exercises || [] }]
         };
       }
       return w;
@@ -499,8 +543,15 @@ function App() {
   };
 
   const handleStartSession = (workout) => {
+    sessionStorage.setItem('app_session_start', Date.now().toString());
     setActiveSessionWorkout(workout);
     setView('workout-session');
+  };
+
+  const handleDiscardSession = () => {
+    sessionStorage.removeItem('app_session_start');
+    setActiveSessionWorkout(null);
+    setView('home');
   };
 
   const handleFinishSession = async (sessionLogs, duration) => {
@@ -547,6 +598,7 @@ function App() {
 
     setLogs(prev => [newLogForState, ...prev]);
     showNotification('Workout finished! Great job!', 'success');
+    sessionStorage.removeItem('app_session_start');
     setActiveSessionWorkout(null);
     setView('home');
 
@@ -589,19 +641,34 @@ function App() {
         <div className="absolute bottom-[-20%] left-[20%] w-96 h-96 bg-brand-primary-dark/20 rounded-full mix-blend-screen filter blur-[60px] opacity-40 animate-blob animation-delay-4000"></div>
       </div>
 
-      <UserProfile
-        user={session.user}
-        currentPlan={userPlan}
-        onUpgrade={handleUpgrade}
-        onManage={handleManageSubscription}
-        onCancel={handleCancelSubscription}
-      />
+      {activeSessionWorkout && view !== 'workout-session' && (
+        <button
+          onClick={() => setView('workout-session')}
+          className="fixed top-4 left-4 z-50 flex items-center gap-2 bg-brand-primary text-black px-3 py-1.5 rounded-full shadow-lg shadow-brand-primary/30 animate-pulse-slow font-bold text-sm"
+        >
+          <span className="w-2 h-2 bg-black rounded-full animate-ping shrink-0" />
+          <span className="truncate max-w-[120px]">{activeSessionWorkout.name}</span>
+          <span className="font-mono text-xs opacity-80">
+            {`${Math.floor(sessionElapsed / 60)}:${String(sessionElapsed % 60).padStart(2, '0')}`}
+          </span>
+        </button>
+      )}
+
+      {view === 'home' && (
+        <UserProfile
+          user={session.user}
+          currentPlan={userPlan}
+          onUpgrade={handleUpgrade}
+          onManage={handleManageSubscription}
+          onCancel={handleCancelSubscription}
+        />
+      )}
 
       <div className={view === 'home'
         ? "w-full max-w-[550px] overflow-hidden h-[600px] flex flex-col transition-all duration-500"
         : view === 'stats'
           ? "w-full max-w-[1000px] bg-brand-gray/95 backdrop-blur-md rounded-2xl shadow-2xl overflow-hidden h-[80vh] flex flex-col transition-all duration-500"
-          : "w-full max-w-[550px] bg-brand-gray/70 backdrop-blur-md rounded-2xl shadow-2xl overflow-hidden h-[600px] flex flex-col transition-all duration-500"}>
+          : "w-full max-w-[550px] bg-brand-gray/70 backdrop-blur-md rounded-2xl shadow-2xl overflow-hidden h-[670px] flex flex-col transition-all duration-500"}>
 
         {view === 'home' && (
           <HomeScreen setView={setView} activePlan={activePlan} />
@@ -647,6 +714,7 @@ function App() {
             previousLog={logs.find(l => l.plan_id === activePlan?.id && l.workoutName === activeSessionWorkout.name)}
             onFinish={handleFinishSession}
             onBack={() => setView('start-workout')}
+            onDiscard={handleDiscardSession}
           />
         )}
 

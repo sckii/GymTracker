@@ -1,319 +1,297 @@
-import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Clock, Check, Save } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { ArrowLeft, Clock, Check, ChevronRight, ChevronLeft, Trash2, Save } from 'lucide-react';
 import TutorialModal from './TutorialModal';
 
-export default function WorkoutSession({ workout, previousLog, onFinish, onBack }) {
+export default function WorkoutSession({ workout, previousLog, onFinish, onBack, onDiscard }) {
     const [logs, setLogs] = useState({});
-    const [duration, setDuration] = useState(0);
+    const [duration, setDuration] = useState(() => {
+        const start = parseInt(sessionStorage.getItem('app_session_start') || '0');
+        return start ? Math.floor((Date.now() - start) / 1000) : 0;
+    });
+    const [currentIndex, setCurrentIndex] = useState(0);
     const [showTutorial, setShowTutorial] = useState(false);
-
+    const [confirmDiscard, setConfirmDiscard] = useState(false);
     const [validationErrors, setValidationErrors] = useState({});
+
+    const exercises = workout.exercises;
+    const exercise = exercises[currentIndex];
+    const isLast = currentIndex === exercises.length - 1;
+    const setsCount = parseInt(exercise?.sets) || 0;
 
     useEffect(() => {
         const timer = setInterval(() => setDuration(d => d + 1), 1000);
-
-        // Check for tutorial
-        const hasSeenTutorial = localStorage.getItem('hasSeenSessionTutorial');
-        if (!hasSeenTutorial) {
-            setShowTutorial(true);
-        }
-
+        if (!localStorage.getItem('hasSeenSessionTutorial')) setShowTutorial(true);
         return () => clearInterval(timer);
     }, []);
 
-    const handleCloseTutorial = () => {
-        setShowTutorial(false);
-        localStorage.setItem('hasSeenSessionTutorial', 'true');
+    // Reset errors when exercise changes
+    useEffect(() => { setValidationErrors({}); }, [currentIndex]);
+
+    const formatTime = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+
+    const getPrevStats = (setIndex) => {
+        if (!previousLog?.exercises) return null;
+        let prev = previousLog.exercises.find(e => e.id === exercise.id);
+        if (!prev) prev = previousLog.exercises.find(e => e.name === exercise.name);
+        return prev?.sets?.[setIndex] ?? null;
     };
 
-    const tutorialSteps = [
-        {
-            title: "Track Your Performance",
-            content: (
-                <div className="flex flex-col gap-3">
-                    <p>Welcome to your workout session! Log your weight and reps for each set just like a real notebook.</p>
-                </div>
-            )
-        },
-        {
-            title: "Targets & Rest",
-            content: (
-                <div className="flex flex-col gap-3">
-                    <p>See your targets and rest times directly in the row.</p>
-                    <div className="grid grid-cols-12 gap-2 text-xs font-bold text-gray-500 uppercase text-center bg-brand-light-gray p-2 rounded-lg border border-brand-border/50">
-                        <div className="col-span-4 text-left pl-2">Target</div>
-                        <div className="col-span-4 text-center">Rest</div>
-                        <div className="col-span-4 text-center"></div>
-
-                        <div className="col-span-4 flex items-center text-gray-400 pl-2 text-sm font-medium">12</div>
-                        <div className="col-span-4 flex items-center justify-center text-gray-500 text-sm font-medium">60s</div>
-                    </div>
-                </div>
-            )
-        },
-        {
-            title: "Previous History",
-            content: (
-                <div className="flex flex-col gap-3">
-                    <p>Your "Last" stats show what you did last time. They appear right below the inputs so you know what to beat!</p>
-                    <div className="flex gap-4 justify-center py-2">
-                        <div className="flex flex-col gap-1 w-20">
-                            <div className="text-[10px] uppercase font-bold text-gray-500 text-center">KG</div>
-                            <input disabled type="text" value="20" className="w-full text-center bg-brand-dark rounded-lg py-1.5 text-sm font-bold text-gray-200 outline-none border border-brand-border/30 opacity-70" />
-                            <span className="text-[10px] text-gray-500 text-center">20 kg</span>
-                        </div>
-                        <div className="flex flex-col gap-1 w-20">
-                            <div className="text-[10px] uppercase font-bold text-gray-500 text-center">Reps</div>
-                            <input disabled type="text" value="12" className="w-full text-center bg-brand-dark rounded-lg py-1.5 text-sm font-bold text-gray-200 outline-none border border-brand-border/30 opacity-70" />
-                            <span className="text-[10px] text-gray-500 text-center">12 Reps</span>
-                        </div>
-                    </div>
-                </div>
-            )
-        }
-    ];
-
-    const formatTime = (seconds) => {
-        const mins = Math.floor(seconds / 60);
-        const secs = seconds % 60;
-        return `${mins}:${secs.toString().padStart(2, '0')}`;
-    };
-
-    const getPreviousStats = (exerciseId, setIndex) => {
-        // ... (rest of the file remains unchanged, just need to render the Modal)
-        if (!previousLog || !previousLog.exercises) return null;
-        // Try precise ID match first
-        let prevExercise = previousLog.exercises.find(e => e.id === exerciseId);
-
-        // If not found (maybe plan edited/recreated), try matching by Name
-        if (!prevExercise) {
-            const currentExercise = workout.exercises.find(e => e.id === exerciseId);
-            if (currentExercise) {
-                prevExercise = previousLog.exercises.find(e => e.name === currentExercise.name);
-            }
-        }
-
-        if (prevExercise && prevExercise.sets && prevExercise.sets[setIndex]) {
-            return prevExercise.sets[setIndex];
-        }
-        return null;
-    };
-
-    const handleLogChange = (exerciseId, setIndex, field, value) => {
-        // Validation: Prevent negative values
+    const handleChange = (setIndex, field, value) => {
         if (value < 0) return;
-
-        // Clear validation error when user types
-        if (validationErrors[`${exerciseId}-${setIndex}-${field}`]) {
-            setValidationErrors(prev => {
-                const newErrors = { ...prev };
-                delete newErrors[`${exerciseId}-${setIndex}-${field}`];
-                return newErrors;
-            });
-        }
-
+        const key = `${exercise.id}-${setIndex}-${field}`;
+        if (validationErrors[key]) setValidationErrors(prev => { const n = { ...prev }; delete n[key]; return n; });
         setLogs(prev => ({
             ...prev,
-            [exerciseId]: {
-                ...prev[exerciseId],
-                [setIndex]: {
-                    ...prev[exerciseId]?.[setIndex],
-                    [field]: value
-                }
-            }
+            [exercise.id]: { ...prev[exercise.id], [setIndex]: { ...prev[exercise.id]?.[setIndex], [field]: value } }
         }));
     };
 
-    const toggleSetComplete = (exerciseId, setIndex) => {
-        const current = logs[exerciseId]?.[setIndex]?.completed;
-        handleLogChange(exerciseId, setIndex, 'completed', !current);
+    const toggleComplete = (setIndex) => {
+        handleChange(setIndex, 'completed', !logs[exercise.id]?.[setIndex]?.completed);
     };
 
-    const getTargetLabel = (exercise, index) => {
-        if (exercise.type === 'Normal') return exercise.reps;
-        if (Array.isArray(exercise.reps)) return exercise.reps[index] || '-';
-        return '-';
+    const getTarget = (i) => {
+        if (exercise.type === 'Normal') return exercise.reps || '—';
+        return Array.isArray(exercise.reps) ? (exercise.reps[i] || '—') : '—';
     };
 
-    const getRestLabel = (exercise, index) => {
-        if (exercise.restType === 'Normal' || !exercise.restType) return exercise.rest || '-';
-        if (Array.isArray(exercise.rest)) return exercise.rest[index] || '-';
-        return '-';
+    const getRest = (i) => {
+        if (!exercise.rest) return null;
+        if (exercise.restType === 'Normal' || !exercise.restType) return exercise.rest;
+        return Array.isArray(exercise.rest) ? exercise.rest[i] : null;
+    };
+
+    const validateCurrent = () => {
+        const errors = {};
+        for (let i = 0; i < setsCount; i++) {
+            const log = logs[exercise.id]?.[i];
+            if (log?.weight === '' || log?.weight == null) errors[`${exercise.id}-${i}-weight`] = true;
+            if (log?.reps === '' || log?.reps == null) errors[`${exercise.id}-${i}-reps`] = true;
+        }
+        if (Object.keys(errors).length) { setValidationErrors(errors); return false; }
+        return true;
+    };
+
+    const handleNext = () => {
+        if (!validateCurrent()) return;
+        setCurrentIndex(i => i + 1);
     };
 
     const handleFinish = () => {
-        let hasErrors = false;
-        const newErrors = {};
-
-        // Validate all fields are filled
-        for (const exercise of workout.exercises) {
-            const setsCount = parseInt(exercise.sets) || 0;
-
-            for (let i = 0; i < setsCount; i++) {
-                const log = logs[exercise.id]?.[i];
-                const weight = log?.weight;
-                const reps = log?.reps;
-
-                if (weight === '' || weight === undefined || weight === null) {
-                    newErrors[`${exercise.id}-${i}-weight`] = true;
-                    hasErrors = true;
-                }
-                if (reps === '' || reps === undefined || reps === null) {
-                    newErrors[`${exercise.id}-${i}-reps`] = true;
-                    hasErrors = true;
-                }
-            }
-        }
-
-        if (hasErrors) {
-            setValidationErrors(newErrors);
-            // Optional: Scroll to top or first error if needed
-            return;
-        }
-
+        if (!validateCurrent()) return;
         onFinish(logs, duration);
     };
 
+    const completedSets = Array.from({ length: setsCount }).filter((_, i) => logs[exercise.id]?.[i]?.completed).length;
+    const restAfter = exercise?.restAfter;
+
+    const tutorialSteps = [
+        { title: "Track Your Performance", content: <p className="text-gray-300">Fill in the weight and reps for each set. Tap ✓ to mark a set as done.</p> },
+        { title: "Previous History", content: <p className="text-gray-300">Your last session stats appear below each input so you know what to beat.</p> },
+        { title: "Navigate Exercises", content: <p className="text-gray-300">Use <strong className="text-brand-primary">Next</strong> to advance to the next exercise after finishing your sets.</p> },
+    ];
+
     return (
-        <div className="flex flex-col h-full">
+        <div className="flex flex-col h-full bg-brand-gray">
             {/* Header */}
-            <div className="bg-brand-light-gray p-6 pb-4 border-b border-brand-border flex justify-between items-center sticky top-0 z-10 shadow-sm">
-                <div className="flex items-center gap-4">
+            <div className="bg-brand-light-gray px-4 py-3 border-b border-brand-border flex items-center justify-between shrink-0">
+                <div className="flex items-center gap-3">
                     <button onClick={onBack} className="p-2 hover:bg-brand-border rounded-full text-gray-400 hover:text-white transition-colors">
-                        <ArrowLeft size={24} />
+                        <ArrowLeft size={20} />
                     </button>
                     <div>
-                        <h2 className="text-xl font-bold text-gray-100">{workout.name}</h2>
-                        <div className="flex items-center gap-1.5 text-brand-primary font-medium text-sm">
-                            <Clock size={14} />
+                        <p className="text-xs text-gray-500 font-semibold uppercase tracking-wider">
+                            Exercise {currentIndex + 1} of {exercises.length}
+                        </p>
+                        <div className="flex items-center gap-1.5 text-brand-primary font-mono font-bold text-sm">
+                            <Clock size={13} />
                             <span>{formatTime(duration)}</span>
                         </div>
                     </div>
                 </div>
-                <button
-                    onClick={handleFinish}
-                    className="bg-brand-primary hover:bg-brand-primary-dark text-black px-5 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 shadow-sm transition-colors"
-                >
-                    <Save size={18} />
-                    <span>Finish</span>
-                </button>
+
+                <div className="flex items-center gap-2">
+                    {confirmDiscard ? (
+                        <div className="flex items-center gap-2">
+                            <span className="text-xs text-gray-400">Discard?</span>
+                            <button onClick={onDiscard} className="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-lg font-bold text-xs">Yes</button>
+                            <button onClick={() => setConfirmDiscard(false)} className="bg-brand-border text-gray-300 px-3 py-1.5 rounded-lg font-bold text-xs">No</button>
+                        </div>
+                    ) : (
+                        <button onClick={() => setConfirmDiscard(true)} className="p-2 rounded-xl text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition-colors">
+                            <Trash2 size={18} />
+                        </button>
+                    )}
+                </div>
             </div>
 
-            {/* Exercises List */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                {workout.exercises.map((exercise, index) => (
-                    <React.Fragment key={exercise.id}>
-                        <div className="bg-brand-light-gray rounded-2xl p-3 shadow-sm border border-brand-border">
-                            <div className="mb-4">
-                                <h3 className="text-lg font-bold text-gray-100">{exercise.name}</h3>
-                                <div className="flex gap-2 text-xs text-gray-400 font-medium uppercase tracking-wider mt-1">
-                                    <span className="bg-brand-gray px-2 py-0.5 rounded">{exercise.sets} Sets</span>
-                                    <span className="bg-brand-gray px-2 py-0.5 rounded text-brand-primary">{exercise.type}</span>
-                                </div>
-                            </div>
-
-                            <div className="space-y-2">
-                                {/* Header Row */}
-                                <div className="grid grid-cols-12 gap-2 text-xs font-bold text-gray-500 uppercase text-center mb-2 px-2">
-                                    <div className="col-span-1">Set</div>
-                                    <div className="col-span-3">Target</div>
-                                    <div className="col-span-2">Rest</div>
-                                    <div className="col-span-2">Kg</div>
-                                    <div className="col-span-2">Reps</div>
-                                    <div className="col-span-2"></div>
-                                </div>
-
-                                {Array.from({ length: parseInt(exercise.sets) || 0 }).map((_, i) => {
-                                    const isCompleted = logs[exercise.id]?.[i]?.completed;
-                                    const setClass = isCompleted ? 'bg-brand-primary/10 border-brand-primary/30' : 'bg-brand-gray border-brand-border';
-                                    const weightError = validationErrors[`${exercise.id}-${i}-weight`];
-                                    const repsError = validationErrors[`${exercise.id}-${i}-reps`];
-                                    const prevStats = getPreviousStats(exercise.id, i);
-
-                                    return (
-                                        <div key={i} className={`grid grid-cols-12 gap-2 items-center p-2 rounded-xl border ${setClass} transition-colors relative`}>
-                                            <div className="col-span-1 text-center font-bold text-gray-500 text-sm">{i + 1}</div>
-
-                                            <div className="col-span-3 flex flex-col items-center justify-center">
-                                                <span className="text-sm font-medium text-gray-400">{getTargetLabel(exercise, i)}</span>
-                                            </div>
-
-                                            <div className="col-span-2 flex items-center justify-center">
-                                                <span className="text-sm font-medium text-gray-500">{getRestLabel(exercise, i)}s</span>
-                                            </div>
-
-                                            <div className="col-span-2 flex flex-col gap-1">
-                                                <input
-                                                    type="number"
-                                                    min="0"
-                                                    placeholder="-"
-                                                    className={`w-full text-center bg-brand-dark rounded-lg py-1.5 text-sm font-bold text-gray-200 outline-none focus:ring-2 focus:ring-brand-primary border transition-all appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none ${weightError ? 'border-red-500 ring-1 ring-red-500/30' : 'border-transparent focus:border-brand-primary'} ${isCompleted ? 'text-brand-primary' : ''}`}
-                                                    value={logs[exercise.id]?.[i]?.weight || ''}
-                                                    onChange={(e) => handleLogChange(exercise.id, i, 'weight', e.target.value)}
-                                                />
-                                                {prevStats && (
-                                                    <span className="text-[10px] text-gray-500 text-center">
-                                                        {prevStats.weight} kg
-                                                    </span>
-                                                )}
-                                            </div>
-
-                                            <div className="col-span-2 flex flex-col gap-1">
-                                                <input
-                                                    type="number"
-                                                    min="0"
-                                                    placeholder={getTargetLabel(exercise, i)}
-                                                    className={`w-full text-center bg-brand-dark rounded-lg py-1.5 text-sm font-bold text-gray-200 outline-none focus:ring-2 focus:ring-brand-primary border transition-all appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none ${repsError ? 'border-red-500 ring-1 ring-red-500/30' : 'border-transparent focus:border-brand-primary'} ${isCompleted ? 'text-brand-primary' : ''}`}
-                                                    value={logs[exercise.id]?.[i]?.reps || ''}
-                                                    onChange={(e) => handleLogChange(exercise.id, i, 'reps', e.target.value)}
-                                                />
-                                                {prevStats && (
-                                                    <span className="text-[10px] text-gray-500 text-center">
-                                                        {prevStats.reps} Reps
-                                                    </span>
-                                                )}
-                                            </div>
-
-                                            <div className="col-span-2 flex justify-center">
-                                                <button
-                                                    onClick={() => toggleSetComplete(exercise.id, i)}
-                                                    className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${isCompleted ? 'bg-brand-primary text-black shadow-md scale-105' : 'bg-brand-dark text-gray-600 hover:bg-black hover:text-gray-400'}`}
-                                                >
-                                                    <Check size={16} strokeWidth={3} />
-                                                </button>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </div>
-
-                        {index < workout.exercises.length - 1 && exercise.restAfter && (
-                            <div className="flex items-center justify-center py-2 relative opacity-60">
-                                <div className="absolute inset-0 flex items-center" aria-hidden="true">
-                                    <div className="w-full border-t border-brand-border/40"></div>
-                                </div>
-                                <div className="relative flex items-center justify-center">
-                                    <div className="bg-brand-gray px-3 flex items-center gap-2 rounded-full border border-brand-border/20 py-1">
-                                        <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Rest</span>
-                                        <span className="text-xs font-bold text-brand-lime">{exercise.restAfter}s</span>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-                    </React.Fragment>
+            {/* Progress dots */}
+            <div className="flex items-center justify-center gap-1.5 py-3 bg-brand-light-gray/50 shrink-0">
+                {exercises.map((_, i) => (
+                    <button
+                        key={i}
+                        onClick={() => setCurrentIndex(i)}
+                        className={`rounded-full transition-all duration-300 ${
+                            i === currentIndex
+                                ? 'w-5 h-2 bg-brand-primary'
+                                : i < currentIndex
+                                    ? 'w-2 h-2 bg-brand-primary/40'
+                                    : 'w-2 h-2 bg-brand-border'
+                        }`}
+                    />
                 ))}
+            </div>
 
-                <div className="h-10"></div> {/* Spacer */}
+            {/* Exercise content */}
+            <div className="flex-1 overflow-y-auto overscroll-contain">
+                <div className="px-4 pt-5 pb-2">
+                    {/* Exercise name + tags */}
+                    <h2 className="text-2xl font-black text-gray-100 leading-tight mb-2">{exercise.name}</h2>
+                    <div className="flex flex-wrap gap-2 mb-5">
+                        <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-brand-primary/10 text-brand-primary border border-brand-primary/20">
+                            {setsCount} Sets
+                        </span>
+                        <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-brand-light-gray text-gray-400 border border-brand-border">
+                            {exercise.type || 'Normal'}
+                        </span>
+                        {completedSets > 0 && (
+                            <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-green-500/10 text-green-400 border border-green-500/20">
+                                {completedSets}/{setsCount} done
+                            </span>
+                        )}
+                    </div>
+
+                    {/* Sets */}
+                    <div className="flex flex-col gap-1.5">
+                        {Array.from({ length: setsCount }).map((_, i) => {
+                            const isCompleted = logs[exercise.id]?.[i]?.completed;
+                            const prevStats = getPrevStats(i);
+                            const weightErr = validationErrors[`${exercise.id}-${i}-weight`];
+                            const repsErr = validationErrors[`${exercise.id}-${i}-reps`];
+                            const rest = getRest(i);
+
+                            return (
+                                <div key={i}>
+                                    <div className={`rounded-xl border px-3 py-2 transition-all duration-200 ${
+                                        isCompleted ? 'bg-brand-primary/5 border-brand-primary/30' : 'bg-brand-light-gray border-brand-border'
+                                    }`}>
+                                        {/* Set label row */}
+                                        <div className="flex items-center gap-2 mb-1.5">
+                                            <span className={`text-[11px] font-black uppercase tracking-wider ${isCompleted ? 'text-brand-primary' : 'text-gray-500'}`}>
+                                                Set {i + 1}
+                                            </span>
+                                            <span className="text-[11px] text-gray-600">· Target {getTarget(i)}</span>
+                                        </div>
+
+                                        {/* Inputs + ✓ inline */}
+                                        <div className="flex items-end gap-2">
+                                            {/* KG */}
+                                            <div className="flex-1 flex flex-col gap-0.5">
+                                                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest text-center">KG</label>
+                                                <input
+                                                    type="number"
+                                                    inputMode="decimal"
+                                                    min="0"
+                                                    placeholder="0"
+                                                    value={logs[exercise.id]?.[i]?.weight ?? ''}
+                                                    onChange={e => handleChange(i, 'weight', e.target.value)}
+                                                    className={`w-full text-center text-lg font-black bg-brand-gray rounded-lg py-1.5 text-gray-100 border-2 outline-none transition-all appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none
+                                                        ${weightErr ? 'border-red-500 text-red-400' : isCompleted ? 'border-brand-primary/40 text-brand-primary' : 'border-transparent focus:border-brand-primary/60'}`}
+                                                />
+                                                {prevStats?.weight != null && (
+                                                    <span className="text-[9px] text-gray-600 text-center">{prevStats.weight}kg</span>
+                                                )}
+                                            </div>
+
+                                            {/* Reps */}
+                                            <div className="flex-1 flex flex-col gap-0.5">
+                                                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest text-center">Reps</label>
+                                                <input
+                                                    type="number"
+                                                    inputMode="numeric"
+                                                    min="0"
+                                                    placeholder={getTarget(i)}
+                                                    value={logs[exercise.id]?.[i]?.reps ?? ''}
+                                                    onChange={e => handleChange(i, 'reps', e.target.value)}
+                                                    className={`w-full text-center text-lg font-black bg-brand-gray rounded-lg py-1.5 text-gray-100 border-2 outline-none transition-all appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none
+                                                        ${repsErr ? 'border-red-500 text-red-400' : isCompleted ? 'border-brand-primary/40 text-brand-primary' : 'border-transparent focus:border-brand-primary/60'}`}
+                                                />
+                                                {prevStats?.reps != null && (
+                                                    <span className="text-[9px] text-gray-600 text-center">{prevStats.reps} reps</span>
+                                                )}
+                                            </div>
+
+                                            {/* ✓ button */}
+                                            <button
+                                                onClick={() => toggleComplete(i)}
+                                                className={`shrink-0 w-9 h-9 rounded-lg flex items-center justify-center transition-all mb-[1px] ${
+                                                    isCompleted
+                                                        ? 'bg-brand-primary text-black shadow-md shadow-brand-primary/20'
+                                                        : 'bg-brand-gray text-gray-600 hover:text-gray-300'
+                                                }`}
+                                            >
+                                                <Check size={16} strokeWidth={3} />
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {/* Rest between sets — outside the card */}
+                                    {rest && i < setsCount - 1 && (
+                                        <div className="flex items-center justify-center py-1">
+                                            <span className="text-[10px] text-gray-600 font-medium">— {rest}s rest —</span>
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            </div>
+
+            {/* Fixed bottom nav */}
+            <div className="shrink-0 px-4 pb-4 pt-2 bg-brand-gray">
+                {restAfter && !isLast && (
+                    <div className="flex items-center gap-1.5 mb-2">
+                        <div className="h-px flex-1 bg-brand-border/50" />
+                        <span className="text-[10px] text-gray-500 font-medium">{restAfter}s rest before next exercise</span>
+                        <div className="h-px flex-1 bg-brand-border/50" />
+                    </div>
+                )}
+                <div className="flex items-center gap-3">
+                    {currentIndex > 0 && (
+                        <button
+                            onClick={() => setCurrentIndex(i => i - 1)}
+                            className="p-3 rounded-2xl bg-brand-light-gray border border-brand-border text-gray-400 hover:text-white transition-colors"
+                        >
+                            <ChevronLeft size={20} />
+                        </button>
+                    )}
+                    {isLast ? (
+                        <button
+                            onClick={handleFinish}
+                            className="flex-1 bg-brand-primary hover:bg-brand-primary-dark text-black font-black py-3.5 rounded-2xl flex items-center justify-center gap-2 transition-colors shadow-lg shadow-brand-primary/20"
+                        >
+                            <Save size={18} />
+                            Save Workout
+                        </button>
+                    ) : (
+                        <button
+                            onClick={handleNext}
+                            className="flex-1 bg-brand-primary hover:bg-brand-primary-dark text-black font-black py-3.5 rounded-2xl flex items-center justify-center gap-2 transition-colors shadow-lg shadow-brand-primary/20"
+                        >
+                            Next Exercise
+                            <ChevronRight size={18} />
+                        </button>
+                    )}
+                </div>
             </div>
 
             <TutorialModal
                 isOpen={showTutorial}
-                onClose={handleCloseTutorial}
+                onClose={() => { setShowTutorial(false); localStorage.setItem('hasSeenSessionTutorial', 'true'); }}
                 title="How to use Session Logger"
                 steps={tutorialSteps}
             />
         </div>
     );
-
 }

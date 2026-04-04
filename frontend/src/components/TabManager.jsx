@@ -8,7 +8,7 @@ export default function TabManager({ workouts, activeTab, setActiveTab, setWorko
     const addTab = () => {
         if (isReadOnly) return;
         const newId = Date.now().toString();
-        const newWorkout = { id: newId, name: 'New Workout', variations: [{ id: newId + '_v', name: 'Semana 1', exercises: [] }] };
+        const newWorkout = { id: newId, name: 'New Workout', variations: [{ id: newId + '_v', name: 'Week 1', exercises: [] }] };
         setWorkouts(prev => [...prev, newWorkout]);
         setActiveTab(newId);
     };
@@ -79,10 +79,10 @@ export default function TabManager({ workouts, activeTab, setActiveTab, setWorko
                         <span>{workout.name}</span>
                     )}
 
-                    {!isReadOnly && (
+                    {!isReadOnly && activeTab === workout.id && (
                         <button
                             onClick={(e) => removeTab(e, workout.id)}
-                            className="opacity-0 group-hover:opacity-100 hover:bg-brand-border p-0.5 rounded-full transition-all text-gray-400 hover:text-white"
+                            className="hover:bg-brand-border p-0.5 rounded-full transition-colors text-gray-400 hover:text-white"
                         >
                             <X size={14} />
                         </button>

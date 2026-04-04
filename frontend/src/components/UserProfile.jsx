@@ -31,13 +31,13 @@ export default function UserProfile({ user, currentPlan, onUpgrade, onManage, on
             <div className="absolute top-4 right-4 z-50 flex items-center gap-3 bg-brand-light-gray/80 backdrop-blur-md py-1.5 px-3 rounded-full border border-brand-border shadow-sm transition-all fixed top-0">
 
                 {/* Plan Badge - Clickable */}
-                <button
+                {/* <button
                     onClick={() => setIsModalOpen(true)}
                     className={`text-[10px] font-bold px-2 py-0.5 rounded-full border flex items-center gap-1 uppercase tracking-wider transition-transform hover:scale-105 ${badgeColor}`}
                 >
                     {currentPlan?.id === 'pro' && <Crown size={10} fill="currentColor" />}
                     {currentPlan?.name || 'FREE'}
-                </button>
+                </button> */}
 
                 <div className="flex items-center gap-3">
                     {avatarUrl ? (
