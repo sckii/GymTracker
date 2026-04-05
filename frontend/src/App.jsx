@@ -85,13 +85,27 @@ function App() {
 
   // Active session badge timer
   const [sessionElapsed, setSessionElapsed] = useState(0);
+  const [badgeSetRest, setBadgeSetRest] = useState(null);
+  const [badgeExRest, setBadgeExRest] = useState(null);
+  const fmtBadge = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+  const readBadgeTimer = (key) => {
+    try {
+      const saved = JSON.parse(sessionStorage.getItem(key));
+      if (!saved) return null;
+      const rem = saved.remaining - Math.floor((Date.now() - saved.savedAt) / 1000);
+      return rem > 0 ? rem : null;
+    } catch { return null; }
+  };
   useEffect(() => {
     if (!activeSessionWorkout || view === 'workout-session') return;
     const startTime = parseInt(sessionStorage.getItem('app_session_start') || Date.now());
-    setSessionElapsed(Math.floor((Date.now() - startTime) / 1000));
-    const interval = setInterval(() => {
+    const tick = () => {
       setSessionElapsed(Math.floor((Date.now() - startTime) / 1000));
-    }, 1000);
+      setBadgeSetRest(readBadgeTimer('app_session_set_rest'));
+      setBadgeExRest(readBadgeTimer('app_session_exercise_rest'));
+    };
+    tick();
+    const interval = setInterval(tick, 1000);
     return () => clearInterval(interval);
   }, [activeSessionWorkout, view]);
 
@@ -549,7 +563,8 @@ function App() {
   };
 
   const handleDiscardSession = () => {
-    sessionStorage.removeItem('app_session_start');
+    ['app_session_start', 'app_session_logs', 'app_session_index', 'app_session_set_rest', 'app_session_exercise_rest']
+      .forEach(k => sessionStorage.removeItem(k));
     setActiveSessionWorkout(null);
     setView('home');
   };
@@ -598,7 +613,8 @@ function App() {
 
     setLogs(prev => [newLogForState, ...prev]);
     showNotification('Workout finished! Great job!', 'success');
-    sessionStorage.removeItem('app_session_start');
+    ['app_session_start', 'app_session_logs', 'app_session_index', 'app_session_set_rest', 'app_session_exercise_rest']
+      .forEach(k => sessionStorage.removeItem(k));
     setActiveSessionWorkout(null);
     setView('home');
 
@@ -647,10 +663,18 @@ function App() {
           className="fixed top-4 left-4 z-50 flex items-center gap-2 bg-brand-primary text-black px-3 py-1.5 rounded-full shadow-lg shadow-brand-primary/30 animate-pulse-slow font-bold text-sm"
         >
           <span className="w-2 h-2 bg-black rounded-full animate-ping shrink-0" />
-          <span className="truncate max-w-[120px]">{activeSessionWorkout.name}</span>
-          <span className="font-mono text-xs opacity-80">
-            {`${Math.floor(sessionElapsed / 60)}:${String(sessionElapsed % 60).padStart(2, '0')}`}
-          </span>
+          <span className="truncate max-w-[100px]">{activeSessionWorkout.name}</span>
+          <span className="font-mono text-xs opacity-80">{fmtBadge(sessionElapsed)}</span>
+          {badgeSetRest !== null && (
+            <span className="font-mono text-xs font-black bg-green-400 text-green-900 px-1.5 py-0.5 rounded-full">
+              {fmtBadge(badgeSetRest)}
+            </span>
+          )}
+          {badgeExRest !== null && (
+            <span className="font-mono text-xs font-black bg-yellow-400 text-yellow-900 px-1.5 py-0.5 rounded-full">
+              {fmtBadge(badgeExRest)}
+            </span>
+          )}
         </button>
       )}
 
@@ -671,7 +695,7 @@ function App() {
           : "w-full max-w-[550px] bg-brand-gray/70 backdrop-blur-md rounded-2xl shadow-2xl overflow-hidden h-[670px] flex flex-col transition-all duration-500"}>
 
         {view === 'home' && (
-          <HomeScreen setView={setView} activePlan={activePlan} />
+          <HomeScreen setView={setView} activePlan={activePlan} hasActiveSession={!!activeSessionWorkout} />
         )}
 
         {view === 'plan-list' && (
@@ -713,7 +737,7 @@ function App() {
             workout={activeSessionWorkout}
             previousLog={logs.find(l => l.plan_id === activePlan?.id && l.workoutName === activeSessionWorkout.name)}
             onFinish={handleFinishSession}
-            onBack={() => setView('start-workout')}
+            onBack={() => setView('home')}
             onDiscard={handleDiscardSession}
           />
         )}

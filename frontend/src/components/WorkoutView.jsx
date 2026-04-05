@@ -109,6 +109,7 @@ export default function WorkoutView({ workout, setWorkouts, isReadOnly }) {
     };
 
     const addVariation = () => {
+        if (!(activeVariation?.exercises?.length > 0)) return;
         const newId = generateUUID();
         setWorkouts(prev => prev.map(w => {
             if (w.id !== workout.id) return w;
@@ -159,7 +160,7 @@ export default function WorkoutView({ workout, setWorkouts, isReadOnly }) {
 
     return (
         <div ref={workoutRef} className="flex flex-col h-full bg-brand-gray">
-            <div className="px-6 pt-4 border-b border-brand-border/50 pb-4">
+            <div className="px-6 pt-4 border-b border-brand-border/50 pb-1">
                 {/* Name row + toggle */}
                 <div className="flex items-center gap-2 mb-3">
                     <input
@@ -169,6 +170,23 @@ export default function WorkoutView({ workout, setWorkouts, isReadOnly }) {
                         onChange={(e) => updateWorkoutName(e.target.value)}
                         placeholder="Workout Name"
                     />
+                    {!isHeaderExpanded && variations.length > 0 && (
+                        <div className="flex items-center gap-1 overflow-x-auto scrollbar-none shrink-0 max-w-[45%]">
+                            {variations.map((variation) => (
+                                <button
+                                    key={variation.id}
+                                    onClick={() => setActiveVariationId(variation.id)}
+                                    className={`px-2.5 py-1 rounded-lg border text-xs font-medium whitespace-nowrap transition-all ${
+                                        activeVariationId === variation.id
+                                            ? 'bg-brand-primary/10 border-brand-primary text-brand-primary'
+                                            : 'bg-brand-light-gray border-brand-border text-gray-400 hover:text-gray-200 hover:border-gray-600'
+                                    }`}
+                                >
+                                    {variation.name}
+                                </button>
+                            ))}
+                        </div>
+                    )}
                     <button
                         onClick={() => setIsHeaderExpanded(v => !v)}
                         className="shrink-0 p-1.5 rounded-lg text-gray-500 hover:text-gray-300 hover:bg-brand-light-gray transition-colors"
@@ -204,7 +222,7 @@ export default function WorkoutView({ workout, setWorkouts, isReadOnly }) {
                 </div>
 
                 {/* Variations Tabs */}
-                <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+                <div className={`flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none ${!isHeaderExpanded ? 'hidden' : ''}`}>
                     {variations.map((variation) => (
                         <div
                             key={variation.id}
@@ -232,7 +250,7 @@ export default function WorkoutView({ workout, setWorkouts, isReadOnly }) {
                                 </span>
                             )}
 
-                            {!isReadOnly && activeVariationId === variation.id && (
+                            {!isReadOnly && isHeaderExpanded && activeVariationId === variation.id && (
                                 <div className="flex items-center ml-1 gap-1" onClick={(e) => e.stopPropagation()}>
                                     <button onClick={() => setEditingVariationId(variation.id)} className="p-1 hover:bg-brand-gray rounded text-current hover:text-white transition-colors" title="Rename Variation">
                                         <Edit2 size={12} />
@@ -249,7 +267,7 @@ export default function WorkoutView({ workout, setWorkouts, isReadOnly }) {
                             )}
                         </div>
                     ))}
-                    {!isReadOnly && (
+                    {!isReadOnly && isHeaderExpanded && (
                         <button
                             onClick={addVariation}
                             className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-dashed border-brand-border text-gray-500 hover:text-brand-primary hover:border-brand-primary transition-all whitespace-nowrap"

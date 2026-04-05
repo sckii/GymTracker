@@ -21,6 +21,7 @@ export default function ExerciseSelectorModal({ isOpen, onClose, onAddExercises,
 
     const timerRef = useRef(null);
     const isLongPressRef = useRef(false);
+    const pointerStartRef = useRef(null);
 
     // Set width before paint to avoid animated width jump on open
     useLayoutEffect(() => {
@@ -54,12 +55,23 @@ export default function ExerciseSelectorModal({ isOpen, onClose, onAddExercises,
     }, [isOpen]);
 
 
-    const handlePointerDown = (ex) => {
+    const handlePointerDown = (ex, e) => {
         isLongPressRef.current = false;
+        pointerStartRef.current = { x: e.clientX, y: e.clientY };
         timerRef.current = setTimeout(() => {
             isLongPressRef.current = true;
             setDetailExercise(ex);
         }, 500);
+    };
+
+    const handlePointerMove = (e) => {
+        if (!timerRef.current || !pointerStartRef.current) return;
+        const dx = Math.abs(e.clientX - pointerStartRef.current.x);
+        const dy = Math.abs(e.clientY - pointerStartRef.current.y);
+        if (dx > 8 || dy > 8) {
+            clearTimeout(timerRef.current);
+            timerRef.current = null;
+        }
     };
 
     const handlePointerUpOrLeave = () => {
@@ -67,6 +79,7 @@ export default function ExerciseSelectorModal({ isOpen, onClose, onAddExercises,
             clearTimeout(timerRef.current);
             timerRef.current = null;
         }
+        pointerStartRef.current = null;
     };
 
     const handleClick = (ex, e) => {
@@ -250,7 +263,8 @@ export default function ExerciseSelectorModal({ isOpen, onClose, onAddExercises,
                                             setActiveEquipmentFilter('all');
                                         }
                                     }}
-                                    className="w-full bg-brand-light-gray border border-brand-border rounded-xl py-1.5 pl-10 pr-4 outline-none text-gray-200 focus:border-brand-primary transition-colors text-sm font-medium"
+                                    className="w-full bg-brand-light-gray border border-brand-border rounded-xl py-1.5 pl-10 pr-4 outline-none text-gray-200 focus:border-brand-primary transition-colors font-medium"
+                                style={{ fontSize: '16px' }}
                                 />
                             </div>
                             <p className="text-xs text-brand-primary/80 mt-3 flex items-center justify-center gap-1 font-medium bg-brand-primary/5 py-1 rounded-lg border border-brand-primary/20">
@@ -276,7 +290,8 @@ export default function ExerciseSelectorModal({ isOpen, onClose, onAddExercises,
                                         return (
                                             <button
                                                 key={`ex-${ex.id}`}
-                                                onPointerDown={() => handlePointerDown(ex)}
+                                                onPointerDown={(e) => handlePointerDown(ex, e)}
+                                                onPointerMove={handlePointerMove}
                                                 onPointerUp={handlePointerUpOrLeave}
                                                 onPointerLeave={handlePointerUpOrLeave}
                                                 onClick={(e) => handleClick(ex.name, e)}

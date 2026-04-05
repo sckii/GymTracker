@@ -24,6 +24,7 @@ export default function ActiveWorkoutSelector({ activePlan, onSelectWorkout }) {
             : [{ id: workout.id + '_v', name: 'Week 1', exercises: workout.exercises || [] }];
 
         if (variations.length === 1) {
+            if (!(variations[0].exercises?.length > 0)) return;
             onSelectWorkout({
                 ...workout,
                 id: `${workout.id}-${variations[0].id}`,
@@ -37,6 +38,7 @@ export default function ActiveWorkoutSelector({ activePlan, onSelectWorkout }) {
     };
 
     const handleVariationSelect = (variation) => {
+        if (!(variation.exercises?.length > 0)) return;
         const variations = selectedWorkout.variations?.length > 0
             ? selectedWorkout.variations
             : [{ id: selectedWorkout.id + '_v', name: 'Week 1', exercises: selectedWorkout.exercises || [] }];
@@ -79,12 +81,17 @@ export default function ActiveWorkoutSelector({ activePlan, onSelectWorkout }) {
                             : [{ id: workout.id + '_v', name: 'Week 1', exercises: workout.exercises || [] }];
                         const totalExercises = vars.reduce((acc, v) => acc + (v.exercises?.length || 0), 0);
                         const hasMultipleVariations = vars.length > 1;
+                        const isEmpty = !hasMultipleVariations && totalExercises === 0;
 
                         return (
                             <button
                                 key={workout.id}
                                 onClick={() => handleWorkoutClick(workout)}
-                                className="group flex items-center justify-between p-4 bg-brand-light-gray rounded-2xl border border-brand-border hover:border-brand-primary/50 hover:bg-brand-primary/5 transition-all text-left"
+                                className={`group flex items-center justify-between p-4 bg-brand-light-gray rounded-2xl border transition-all text-left ${
+                                    isEmpty
+                                        ? 'border-brand-border opacity-50 cursor-not-allowed'
+                                        : 'border-brand-border hover:border-brand-primary/50 hover:bg-brand-primary/5'
+                                }`}
                             >
                                 <div className="flex items-center gap-4">
                                     <div className="w-11 h-11 rounded-full bg-brand-gray text-brand-primary flex items-center justify-center font-bold text-lg group-hover:bg-brand-primary group-hover:text-black transition-colors shrink-0">
@@ -123,26 +130,34 @@ export default function ActiveWorkoutSelector({ activePlan, onSelectWorkout }) {
                         </div>
                     </div>
 
-                    {variations.map((variation) => (
-                        <button
-                            key={variation.id}
-                            onClick={() => handleVariationSelect(variation)}
-                            className="group flex items-center justify-between p-4 bg-brand-light-gray rounded-2xl border border-brand-border hover:border-brand-primary/50 hover:bg-brand-primary/5 transition-all text-left"
-                        >
-                            <div className="flex items-center gap-4">
-                                <div className="w-11 h-11 rounded-full bg-brand-gray text-brand-primary flex items-center justify-center font-bold text-lg group-hover:bg-brand-primary group-hover:text-black transition-colors shrink-0">
-                                    {variation.name.charAt(0).toUpperCase()}
+                    {variations.map((variation) => {
+                        const exCount = (variation.exercises || []).length;
+                        const varIsEmpty = exCount === 0;
+                        return (
+                            <button
+                                key={variation.id}
+                                onClick={() => handleVariationSelect(variation)}
+                                className={`group flex items-center justify-between p-4 bg-brand-light-gray rounded-2xl border transition-all text-left ${
+                                    varIsEmpty
+                                        ? 'border-brand-border opacity-50 cursor-not-allowed'
+                                        : 'border-brand-border hover:border-brand-primary/50 hover:bg-brand-primary/5'
+                                }`}
+                            >
+                                <div className="flex items-center gap-4">
+                                    <div className="w-11 h-11 rounded-full bg-brand-gray text-brand-primary flex items-center justify-center font-bold text-lg group-hover:bg-brand-primary group-hover:text-black transition-colors shrink-0">
+                                        {variation.name.charAt(0).toUpperCase()}
+                                    </div>
+                                    <div>
+                                        <h3 className="text-base font-bold text-gray-100">{variation.name}</h3>
+                                        <p className="text-xs text-gray-400 mt-0.5">
+                                            {exCount} exercise{exCount !== 1 ? 's' : ''}
+                                        </p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <h3 className="text-base font-bold text-gray-100">{variation.name}</h3>
-                                    <p className="text-xs text-gray-400 mt-0.5">
-                                        {(variation.exercises || []).length} exercise{(variation.exercises || []).length !== 1 ? 's' : ''}
-                                    </p>
-                                </div>
-                            </div>
-                            <Play className="text-gray-600 group-hover:text-brand-primary transition-colors shrink-0" size={18} />
-                        </button>
-                    ))}
+                                <Play className="text-gray-600 group-hover:text-brand-primary transition-colors shrink-0" size={18} />
+                            </button>
+                        );
+                    })}
                 </div>
             </div>
         </div>

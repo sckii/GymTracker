@@ -1,17 +1,43 @@
-import { useState, useEffect } from 'react';
-import { ArrowLeft, Clock, Check, ChevronRight, ChevronLeft, Trash2, Save } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { ArrowLeft, Clock, Timer, Check, ChevronRight, ChevronLeft, Trash2, Save } from 'lucide-react';
 import TutorialModal from './TutorialModal';
 
 export default function WorkoutSession({ workout, previousLog, onFinish, onBack, onDiscard }) {
-    const [logs, setLogs] = useState({});
+    const [logs, setLogs] = useState(() => {
+        try {
+            const saved = sessionStorage.getItem('app_session_logs');
+            return saved ? JSON.parse(saved) : {};
+        } catch { return {}; }
+    });
     const [duration, setDuration] = useState(() => {
         const start = parseInt(sessionStorage.getItem('app_session_start') || '0');
         return start ? Math.floor((Date.now() - start) / 1000) : 0;
     });
-    const [currentIndex, setCurrentIndex] = useState(0);
+    const [currentIndex, setCurrentIndex] = useState(() => {
+        const saved = parseInt(sessionStorage.getItem('app_session_index') || '0');
+        return isNaN(saved) ? 0 : saved;
+    });
     const [showTutorial, setShowTutorial] = useState(false);
     const [confirmDiscard, setConfirmDiscard] = useState(false);
     const [validationErrors, setValidationErrors] = useState({});
+    const prevIndexRef = useRef(null);
+    const scrollRef = useRef(null);
+    const [setRestRemaining, setSetRestRemaining] = useState(() => {
+        try {
+            const saved = JSON.parse(sessionStorage.getItem('app_session_set_rest'));
+            if (!saved) return null;
+            const remaining = saved.remaining - Math.floor((Date.now() - saved.savedAt) / 1000);
+            return remaining > 0 ? remaining : null;
+        } catch { return null; }
+    });
+    const [exerciseRestRemaining, setExerciseRestRemaining] = useState(() => {
+        try {
+            const saved = JSON.parse(sessionStorage.getItem('app_session_exercise_rest'));
+            if (!saved) return null;
+            const remaining = saved.remaining - Math.floor((Date.now() - saved.savedAt) / 1000);
+            return remaining > 0 ? remaining : null;
+        } catch { return null; }
+    });
 
     const exercises = workout.exercises;
     const exercise = exercises[currentIndex];
@@ -19,13 +45,41 @@ export default function WorkoutSession({ workout, previousLog, onFinish, onBack,
     const setsCount = parseInt(exercise?.sets) || 0;
 
     useEffect(() => {
-        const timer = setInterval(() => setDuration(d => d + 1), 1000);
+        const timer = setInterval(() => {
+            setDuration(d => d + 1);
+            setSetRestRemaining(r => (r !== null && r > 0) ? r - 1 : r === 0 ? null : r);
+            setExerciseRestRemaining(r => (r !== null && r > 0) ? r - 1 : r === 0 ? null : r);
+        }, 1000);
         if (!localStorage.getItem('hasSeenSessionTutorial')) setShowTutorial(true);
         return () => clearInterval(timer);
     }, []);
 
-    // Reset errors when exercise changes
-    useEffect(() => { setValidationErrors({}); }, [currentIndex]);
+    useEffect(() => { sessionStorage.setItem('app_session_logs', JSON.stringify(logs)); }, [logs]);
+    useEffect(() => { sessionStorage.setItem('app_session_index', String(currentIndex)); }, [currentIndex]);
+    useEffect(() => {
+        if (setRestRemaining !== null && setRestRemaining > 0)
+            sessionStorage.setItem('app_session_set_rest', JSON.stringify({ remaining: setRestRemaining, savedAt: Date.now() }));
+        else
+            sessionStorage.removeItem('app_session_set_rest');
+    }, [setRestRemaining]);
+    useEffect(() => {
+        if (exerciseRestRemaining !== null && exerciseRestRemaining > 0)
+            sessionStorage.setItem('app_session_exercise_rest', JSON.stringify({ remaining: exerciseRestRemaining, savedAt: Date.now() }));
+        else
+            sessionStorage.removeItem('app_session_exercise_rest');
+    }, [exerciseRestRemaining]);
+
+    // Reset set rest timer and errors on navigation — exercise rest persists intentionally
+    useEffect(() => {
+        if (prevIndexRef.current === null || prevIndexRef.current === currentIndex) {
+            prevIndexRef.current = currentIndex;
+            return;
+        }
+        prevIndexRef.current = currentIndex;
+        scrollRef.current?.scrollTo({ top: 0 });
+        setValidationErrors({});
+        setSetRestRemaining(null);
+    }, [currentIndex]);
 
     const formatTime = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 
@@ -47,7 +101,33 @@ export default function WorkoutSession({ workout, previousLog, onFinish, onBack,
     };
 
     const toggleComplete = (setIndex) => {
-        handleChange(setIndex, 'completed', !logs[exercise.id]?.[setIndex]?.completed);
+        const nowCompleted = !logs[exercise.id]?.[setIndex]?.completed;
+        if (nowCompleted) {
+            const log = logs[exercise.id]?.[setIndex];
+            const errors = {};
+            if (log?.weight === '' || log?.weight == null) errors[`${exercise.id}-${setIndex}-weight`] = true;
+            if (log?.reps === '' || log?.reps == null) errors[`${exercise.id}-${setIndex}-reps`] = true;
+            if (Object.keys(errors).length) {
+                setValidationErrors(prev => ({ ...prev, ...errors }));
+                return;
+            }
+            handleChange(setIndex, 'completed', true);
+            const otherCompleted = Array.from({ length: setsCount })
+                .filter((_, i) => i !== setIndex && logs[exercise.id]?.[i]?.completed).length;
+            const isLastSet = otherCompleted + 1 === setsCount;
+            if (isLastSet) {
+                // All sets done → exercise rest timer, clear set rest
+                setSetRestRemaining(null);
+                if (restAfter && !isLast) setExerciseRestRemaining(parseInt(restAfter));
+            } else {
+                // Non-final set → set rest timer, clear any leftover exercise rest
+                const restVal = getRest(setIndex);
+                setSetRestRemaining(restVal ? parseInt(restVal) : null);
+                setExerciseRestRemaining(null);
+            }
+        } else {
+            handleChange(setIndex, 'completed', false);
+        }
     };
 
     const getTarget = (i) => {
@@ -74,6 +154,19 @@ export default function WorkoutSession({ workout, previousLog, onFinish, onBack,
 
     const handleNext = () => {
         if (!validateCurrent()) return;
+        // Auto-complete sets that have required fields but aren't ticked
+        const updates = {};
+        for (let i = 0; i < setsCount; i++) {
+            const log = logs[exercise.id]?.[i];
+            if (!log?.completed && log?.weight != null && log?.weight !== '' && log?.reps != null && log?.reps !== '') {
+                updates[i] = { ...log, completed: true };
+            }
+        }
+        if (Object.keys(updates).length) {
+            setLogs(prev => ({ ...prev, [exercise.id]: { ...prev[exercise.id], ...updates } }));
+        }
+        // Start exercise rest timer only if not already running
+        if (restAfter && !isLast && exerciseRestRemaining === null) setExerciseRestRemaining(parseInt(restAfter));
         setCurrentIndex(i => i + 1);
     };
 
@@ -84,6 +177,7 @@ export default function WorkoutSession({ workout, previousLog, onFinish, onBack,
 
     const completedSets = Array.from({ length: setsCount }).filter((_, i) => logs[exercise.id]?.[i]?.completed).length;
     const restAfter = exercise?.restAfter;
+
 
     const tutorialSteps = [
         { title: "Track Your Performance", content: <p className="text-gray-300">Fill in the weight and reps for each set. Tap ✓ to mark a set as done.</p> },
@@ -103,25 +197,34 @@ export default function WorkoutSession({ workout, previousLog, onFinish, onBack,
                         <p className="text-xs text-gray-500 font-semibold uppercase tracking-wider">
                             Exercise {currentIndex + 1} of {exercises.length}
                         </p>
-                        <div className="flex items-center gap-1.5 text-brand-primary font-mono font-bold text-sm">
-                            <Clock size={13} />
-                            <span>{formatTime(duration)}</span>
+                        <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-1 text-brand-primary font-mono font-bold text-base">
+                                <Clock size={15} />
+                                <span>{formatTime(duration)}</span>
+                                <span className="text-[9px] text-brand-primary/50 font-medium ml-0.5">total</span>
+                            </div>
+                            {setRestRemaining !== null && (
+                                <div className="flex items-center gap-1 text-green-400 font-mono font-bold text-base">
+                                    <Timer size={15} />
+                                    <span>{formatTime(setRestRemaining)}</span>
+                                    <span className="text-[9px] text-green-600 font-medium ml-0.5">rest</span>
+                                </div>
+                            )}
+                            {exerciseRestRemaining !== null && (
+                                <div className="flex items-center gap-1 text-yellow-400 font-mono font-bold text-base">
+                                    <Timer size={15} />
+                                    <span>{formatTime(exerciseRestRemaining)}</span>
+                                    <span className="text-[9px] text-yellow-600 font-medium ml-0.5">próx</span>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
 
                 <div className="flex items-center gap-2">
-                    {confirmDiscard ? (
-                        <div className="flex items-center gap-2">
-                            <span className="text-xs text-gray-400">Discard?</span>
-                            <button onClick={onDiscard} className="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-lg font-bold text-xs">Yes</button>
-                            <button onClick={() => setConfirmDiscard(false)} className="bg-brand-border text-gray-300 px-3 py-1.5 rounded-lg font-bold text-xs">No</button>
-                        </div>
-                    ) : (
-                        <button onClick={() => setConfirmDiscard(true)} className="p-2 rounded-xl text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition-colors">
-                            <Trash2 size={18} />
-                        </button>
-                    )}
+                    <button onClick={() => setConfirmDiscard(true)} className="p-2 rounded-xl text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition-colors">
+                        <Trash2 size={18} />
+                    </button>
                 </div>
             </div>
 
@@ -142,8 +245,20 @@ export default function WorkoutSession({ workout, previousLog, onFinish, onBack,
                 ))}
             </div>
 
+
             {/* Exercise content */}
-            <div className="flex-1 overflow-y-auto overscroll-contain">
+            <div ref={scrollRef} className="flex-1 overflow-y-auto overscroll-contain">
+                {/* Exercise rest banner — non-blocking */}
+                {exerciseRestRemaining !== null && (
+                    <div className="mx-4 mt-4 flex items-center gap-3 bg-yellow-500/10 border border-yellow-500/30 rounded-xl px-4 py-2.5">
+                        <Timer size={16} className="text-yellow-400 shrink-0" />
+                        <div className="flex-1 min-w-0">
+                            <p className="text-xs font-bold text-yellow-400 leading-tight">Rest before starting</p>
+                            <p className="text-[10px] text-yellow-700 leading-tight">You can start whenever you're ready</p>
+                        </div>
+                        <span className="font-mono font-black text-yellow-400 text-lg tabular-nums">{formatTime(exerciseRestRemaining)}</span>
+                    </div>
+                )}
                 <div className="px-4 pt-5 pb-2">
                     {/* Exercise name + tags */}
                     <h2 className="text-2xl font-black text-gray-100 leading-tight mb-2">{exercise.name}</h2>
@@ -173,18 +288,18 @@ export default function WorkoutSession({ workout, previousLog, onFinish, onBack,
                             return (
                                 <div key={i}>
                                     <div className={`rounded-xl border px-3 py-2 transition-all duration-200 ${
-                                        isCompleted ? 'bg-brand-primary/5 border-brand-primary/30' : 'bg-brand-light-gray border-brand-border'
+                                        isCompleted ? 'bg-green-500/5 border-green-500/30' : 'bg-brand-light-gray border-brand-border'
                                     }`}>
                                         {/* Set label row */}
                                         <div className="flex items-center gap-2 mb-1.5">
-                                            <span className={`text-[11px] font-black uppercase tracking-wider ${isCompleted ? 'text-brand-primary' : 'text-gray-500'}`}>
+                                            <span className={`text-[11px] font-black uppercase tracking-wider ${isCompleted ? 'text-green-400' : 'text-gray-500'}`}>
                                                 Set {i + 1}
                                             </span>
                                             <span className="text-[11px] text-gray-600">· Target {getTarget(i)}</span>
                                         </div>
 
                                         {/* Inputs + ✓ inline */}
-                                        <div className="flex items-end gap-2">
+                                        <div className="flex items-center gap-2">
                                             {/* KG */}
                                             <div className="flex-1 flex flex-col gap-0.5">
                                                 <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest text-center">KG</label>
@@ -196,10 +311,10 @@ export default function WorkoutSession({ workout, previousLog, onFinish, onBack,
                                                     value={logs[exercise.id]?.[i]?.weight ?? ''}
                                                     onChange={e => handleChange(i, 'weight', e.target.value)}
                                                     className={`w-full text-center text-lg font-black bg-brand-gray rounded-lg py-1.5 text-gray-100 border-2 outline-none transition-all appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none
-                                                        ${weightErr ? 'border-red-500 text-red-400' : isCompleted ? 'border-brand-primary/40 text-brand-primary' : 'border-transparent focus:border-brand-primary/60'}`}
+                                                        ${weightErr ? 'border-red-500 text-red-400' : isCompleted ? 'border-green-500/40 text-green-400' : 'border-transparent focus:border-brand-primary/60'}`}
                                                 />
                                                 {prevStats?.weight != null && (
-                                                    <span className="text-[9px] text-gray-600 text-center">{prevStats.weight}kg</span>
+                                                    <span className="text-[9px] text-gray-600 text-center">last: {prevStats.weight}kg</span>
                                                 )}
                                             </div>
 
@@ -214,19 +329,19 @@ export default function WorkoutSession({ workout, previousLog, onFinish, onBack,
                                                     value={logs[exercise.id]?.[i]?.reps ?? ''}
                                                     onChange={e => handleChange(i, 'reps', e.target.value)}
                                                     className={`w-full text-center text-lg font-black bg-brand-gray rounded-lg py-1.5 text-gray-100 border-2 outline-none transition-all appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none
-                                                        ${repsErr ? 'border-red-500 text-red-400' : isCompleted ? 'border-brand-primary/40 text-brand-primary' : 'border-transparent focus:border-brand-primary/60'}`}
+                                                        ${repsErr ? 'border-red-500 text-red-400' : isCompleted ? 'border-green-500/40 text-green-400' : 'border-transparent focus:border-brand-primary/60'}`}
                                                 />
                                                 {prevStats?.reps != null && (
-                                                    <span className="text-[9px] text-gray-600 text-center">{prevStats.reps} reps</span>
+                                                    <span className="text-[9px] text-gray-600 text-center">last: {prevStats.reps} reps</span>
                                                 )}
                                             </div>
 
                                             {/* ✓ button */}
                                             <button
                                                 onClick={() => toggleComplete(i)}
-                                                className={`shrink-0 w-9 h-9 rounded-lg flex items-center justify-center transition-all mb-[1px] ${
+                                                className={`shrink-0 w-9 h-9 rounded-lg flex items-center justify-center transition-all ${
                                                     isCompleted
-                                                        ? 'bg-brand-primary text-black shadow-md shadow-brand-primary/20'
+                                                        ? 'bg-green-500 text-white shadow-md shadow-green-500/20'
                                                         : 'bg-brand-gray text-gray-600 hover:text-gray-300'
                                                 }`}
                                             >
@@ -285,6 +400,34 @@ export default function WorkoutSession({ workout, previousLog, onFinish, onBack,
                     )}
                 </div>
             </div>
+
+            {confirmDiscard && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-6">
+                    <div className="bg-brand-light-gray border border-brand-border rounded-2xl p-6 w-full max-w-sm shadow-xl">
+                        <div className="flex items-center gap-3 mb-3">
+                            <div className="p-2 rounded-xl bg-red-500/10">
+                                <Trash2 size={20} className="text-red-400" />
+                            </div>
+                            <h3 className="text-lg font-black text-gray-100">Discard workout?</h3>
+                        </div>
+                        <p className="text-sm text-gray-400 mb-6">All progress from this session will be lost and cannot be recovered.</p>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setConfirmDiscard(false)}
+                                className="flex-1 py-3 rounded-xl bg-brand-border text-gray-300 font-bold text-sm hover:bg-brand-border/80 transition-colors"
+                            >
+                                Keep going
+                            </button>
+                            <button
+                                onClick={onDiscard}
+                                className="flex-1 py-3 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-sm transition-colors"
+                            >
+                                Discard
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <TutorialModal
                 isOpen={showTutorial}

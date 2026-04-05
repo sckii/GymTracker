@@ -1,7 +1,7 @@
 import React from 'react';
-import { ClipboardList, Play, History } from 'lucide-react';
+import { ClipboardList, Play, History, Zap } from 'lucide-react';
 
-export default function HomeScreen({ setView, activePlan }) {
+export default function HomeScreen({ setView, activePlan, hasActiveSession }) {
     return (
         <div className="relative flex flex-col gap-6 p-8 h-full justify-center items-center overflow-hidden">
             {/* Logo with new secondary colors */}
@@ -25,24 +25,39 @@ export default function HomeScreen({ setView, activePlan }) {
                 </div>
             </button>
 
-            <button
-                onClick={() => setView('start-workout')}
-                className={`w-72 p-6 bg-brand-light-gray/40 backdrop-blur-md border border-brand-border/50 rounded-2xl shadow-xl flex flex-row items-center gap-4 hover:shadow-2xl hover:bg-brand-light-gray/60 hover:scale-105 transition-all duration-300 group ${!activePlan ? 'opacity-80 grayscale-[0.5]' : ''}`}
-            >
-                <div className={`p-4 rounded-full shadow-inner transition-all duration-500 shrink-0 ${activePlan ? 'bg-brand-primary/20 text-brand-primary group-hover:bg-brand-primary group-hover:text-black' : 'bg-brand-gray text-gray-500 group-hover:bg-gray-700 group-hover:text-white'}`}>
-                    <Play size={28} className={activePlan ? "ml-1" : ""} />
-                </div>
-                <div className="flex flex-col items-start text-left">
-                    <span className="block text-lg font-bold text-gray-100 tracking-tight">Start Workout</span>
-                    {activePlan ? (
-                        <span className="text-xs text-black font-bold mt-1 bg-brand-primary px-2 py-0.5 rounded-full shadow-sm">
-                            {activePlan.name}
-                        </span>
-                    ) : (
-                        <span className="text-xs text-gray-500 font-medium mt-1">Select a plan first</span>
-                    )}
-                </div>
-            </button>
+            {hasActiveSession ? (
+                <button
+                    onClick={() => setView('workout-session')}
+                    className="w-72 p-6 bg-green-500/10 backdrop-blur-md border border-green-500/40 rounded-2xl shadow-xl flex flex-row items-center gap-4 hover:shadow-2xl hover:bg-green-500/20 hover:scale-105 transition-all duration-300 group"
+                >
+                    <div className="p-4 bg-green-500/20 text-green-400 rounded-full shadow-inner group-hover:bg-green-500 group-hover:text-white transition-all duration-500 shrink-0">
+                        <Zap size={28} />
+                    </div>
+                    <div className="flex flex-col items-start text-left">
+                        <span className="block text-lg font-bold text-green-300 tracking-tight">Continue Workout</span>
+                        <span className="text-xs text-green-600 font-medium mt-1">Session in progress</span>
+                    </div>
+                </button>
+            ) : (
+                <button
+                    onClick={() => setView('start-workout')}
+                    className={`w-72 p-6 bg-brand-light-gray/40 backdrop-blur-md border border-brand-border/50 rounded-2xl shadow-xl flex flex-row items-center gap-4 hover:shadow-2xl hover:bg-brand-light-gray/60 hover:scale-105 transition-all duration-300 group ${!activePlan ? 'opacity-80 grayscale-[0.5]' : ''}`}
+                >
+                    <div className={`p-4 rounded-full shadow-inner transition-all duration-500 shrink-0 ${activePlan ? 'bg-brand-primary/20 text-brand-primary group-hover:bg-brand-primary group-hover:text-black' : 'bg-brand-gray text-gray-500 group-hover:bg-gray-700 group-hover:text-white'}`}>
+                        <Play size={28} className={activePlan ? "ml-1" : ""} />
+                    </div>
+                    <div className="flex flex-col items-start text-left">
+                        <span className="block text-lg font-bold text-gray-100 tracking-tight">Start Workout</span>
+                        {activePlan ? (
+                            <span className="text-xs text-black font-bold mt-1 bg-brand-primary px-2 py-0.5 rounded-full shadow-sm">
+                                {activePlan.name}
+                            </span>
+                        ) : (
+                            <span className="text-xs text-gray-500 font-medium mt-1">Select a plan first</span>
+                        )}
+                    </div>
+                </button>
+            )}
 
             <button
                 onClick={() => setView('stats')}

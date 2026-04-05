@@ -67,7 +67,7 @@ export default function ExerciseCard({ exercise, updateExercise, deleteExercise,
                 {/* Main Configuration Grid */}
                 <div className="flex flex-col gap-4">
                     {/* Row 1: Configurations */}
-                    <div className="grid grid-cols-3 gap-3">
+                    <div className="grid grid-cols-2 gap-3">
                         <div className="flex flex-col gap-1">
                             <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Exercise Type</label>
                             <div className="relative group/select">
@@ -82,22 +82,6 @@ export default function ExerciseCard({ exercise, updateExercise, deleteExercise,
                                 </select>
                                 <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none group-hover/select:text-brand-primary transition-colors" />
                             </div>
-                        </div>
-
-                        <div className="flex flex-col gap-1">
-                            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Sets</label>
-                            <input
-                                disabled={isReadOnly}
-                                type="number"
-                                min="0"
-                                className="bg-brand-gray rounded-lg p-2 font-medium text-gray-300 outline-none focus:ring-2 focus:ring-brand-primary transition-all w-full disabled:opacity-50 appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [appearance:textfield] border border-transparent hover:border-brand-border/50"
-                                placeholder="0"
-                                value={exercise.sets}
-                                onChange={(e) => {
-                                    if (e.target.value < 0) return;
-                                    updateExercise(exercise.id, { ...exercise, sets: e.target.value })
-                                }}
-                            />
                         </div>
 
                         <div className="flex flex-col gap-1">
@@ -117,6 +101,22 @@ export default function ExerciseCard({ exercise, updateExercise, deleteExercise,
                         </div>
                     </div>
 
+                    <div className="flex flex-col gap-1">
+                        <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Sets</label>
+                        <input
+                            disabled={isReadOnly}
+                            type="number"
+                            min="0"
+                            className="bg-brand-gray rounded-lg p-2 font-medium text-gray-300 outline-none focus:ring-2 focus:ring-brand-primary transition-all w-full disabled:opacity-50 appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [appearance:textfield] border border-transparent hover:border-brand-border/50"
+                            placeholder="0"
+                            value={exercise.sets}
+                            onChange={(e) => {
+                                if (e.target.value < 0) return;
+                                updateExercise(exercise.id, { ...exercise, sets: e.target.value })
+                            }}
+                        />
+                    </div>
+
                     {/* Dynamic Inputs Layout */}
                     <div className={(currentType === 'Normal' && currentRestType === 'Normal') ? "grid grid-cols-2 gap-3" : "flex flex-col gap-4"}>
                         {/* Reps Section */}
@@ -130,7 +130,7 @@ export default function ExerciseCard({ exercise, updateExercise, deleteExercise,
                                             disabled={isReadOnly}
                                             type="number"
                                             min="0"
-                                            className="bg-brand-gray rounded-lg p-2 font-medium text-gray-300 outline-none focus:ring-2 focus:ring-brand-primary transition-all w-14 text-center disabled:opacity-50 text-sm appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [appearance:textfield] border border-transparent hover:border-brand-border/50"
+                                            className="bg-brand-gray rounded-lg p-2 font-medium text-gray-300 outline-none focus:ring-2 focus:ring-brand-primary transition-all w-12.5 text-center disabled:opacity-50 text-sm appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [appearance:textfield] border border-transparent hover:border-brand-border/50"
                                             placeholder={`S${i + 1}`}
                                             value={getArrayValue('reps', i)}
                                             onChange={(e) => handleRepsChange(e.target.value, i)}
@@ -162,7 +162,7 @@ export default function ExerciseCard({ exercise, updateExercise, deleteExercise,
                                             disabled={isReadOnly}
                                             type="number"
                                             min="0"
-                                            className="bg-brand-gray rounded-lg p-2 font-medium text-gray-300 outline-none focus:ring-2 focus:ring-blue-400 transition-all w-14 text-center disabled:opacity-50 text-sm appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [appearance:textfield] border border-transparent hover:border-brand-border/50"
+                                            className="bg-brand-gray rounded-lg p-2 font-medium text-gray-300 outline-none focus:ring-2 focus:ring-blue-400 transition-all w-12.5 text-center disabled:opacity-50 text-sm appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [appearance:textfield] border border-transparent hover:border-brand-border/50"
                                             placeholder={`S${i + 1}`}
                                             value={getArrayValue('rest', i)}
                                             onChange={(e) => handleRestChange(e.target.value, i)}
